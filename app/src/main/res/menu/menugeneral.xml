@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+    
+    <item android:id="@+id/cambiar_sitio"
+        	android:title="@string/cambiarsitio">
+    </item>
+    
+    <item android:id="@+id/masdatos"
+		  android:visible="false"
+          android:title="@string/masdatos"/>
+    
+    <item android:id="@+id/tabla"
+          android:title="@string/tabla"
+    />  
+    <group>
+	    <item android:id="@+id/menu_nuevo_sitio"
+				android:visible="false"
+	          android:title="@string/addsitio"
+		/>
+	    <item android:id="@+id/menu_borrar_sitio"
+			  android:visible="false"
+	          android:title="@string/borrarsitio"
+		/>  
+	</group>
+	<group>  
+	    <item android:id="@+id/menu_nueva_imagen"
+	      	android:icon="@drawable/camara"
+			android:visible="false"
+	      	android:title="@string/sacarfoto"
+		/>
+	        
+	    <item android:id="@+id/menu_ver_imagen"
+	          android:icon="@drawable/camara"
+			android:visible="false"
+	          android:title="@string/verfoto"/>
+	    
+	   	<item android:id="@+id/menu_borrar_imagen"
+	   	      android:icon="@drawable/camara"
+				android:visible="false"
+	   	      android:title="@string/borrarfoto"/>	
+   	 </group>     
+     <item android:id="@+id/menu_ajustes"
+		 	android:visible="false"
+          android:title="@string/ajustes"
+	/>
+    <item 	android:id="@+id/ayuda"
+			android:visible="false"
+          	android:title="@string/ayuda"
+    />   
+    
+</menu>

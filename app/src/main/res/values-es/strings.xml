@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Mareando</string>
+    <string name="subiendo">Subiendo</string>
+    <string name="bajando">Bajando</string>
+    <string name="pleamar">Pleamar</string>
+    <string name="bajamar">Bajamar</string>
+    <string name="sacarfoto">Sacar foto</string>
+    <string name="borrarfoto">Borrar foto</string>
+    <string name="verfoto">Ver foto</string>
+    
+    <string name="ajustes">Ajustes</string>
+    <string name="ayuda">Ayuda</string>
+    <string name="tabla">Tabla de mareas</string>
+    
+    <string name="addsitio">Añadir Sitio</string>
+    <string name="borrarsitio">Borrar Sitio</string>
+    
+    <string name="nombresitio">Nombre del sitio</string>
+    <string name="coordenadas">Coordenadas</string>
+    <string name="cancelar">Cancelar</string> 
+    
+    <string name="cambiarsitio">Elegir sitio</string>
+    <string name="masdatos">Más datos</string>
+    <string name="tomorrow">Mañana</string>
+    
+     <string name="deseaborrarsitio">¿ Desea borrar el sitio ?</string>
+    <string name="deseaborrarfoto">¿ Desea borrar la foto ?</string>
+    <string name="confirmarborrado">Confirmación de borrado</string>
+    <string name="elijadia">Elija día y hora a consultar</string>
+    <string name="alturaEnPies">Mostrar altura en pies</string>
+    <string name="alturaEnPiesDesc">Marque para mostrar la altura de las mareas en pies</string>
+    <string name="preferencias">Preferencias</string>   
+    
+    <string name="integrarAemet">Datos Meteorológicos</string>
+    <string name="integrarAemetDesc">Mostrar directamente los datos meteorológicos obtenidos de Aemet. Requiere conexión a Internet</string>
+</resources>

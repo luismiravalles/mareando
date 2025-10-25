@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">My Tide England</string>
+    <string name="subiendo">Rising</string>
+    <string name="bajando">Falling</string>
+    <string name="pleamar">High tide</string>
+    <string name="bajamar">Low tide</string>
+    <string name="sacarfoto">Take a picture</string>
+     <string name="borrarfoto">Remove picture</string>
+     <string name="verfoto">Show picture</string>
+     <string name="ajustes">Settings</string>
+     <string name="ayuda">Help</string>
+     <string name="tabla">Tide Time Table</string>
+     
+    <string name="addsitio">Add Location</string>
+    <string name="borrarsitio">Remove Location</string>
+    
+    <string name="nombresitio">Name of Location</string>
+    <string name="coordenadas">Coordinates</string> 
+    <string name="cancelar">Cancel</string> 
+    
+    <string name="cambiarsitio">Choose Location &amp; Date</string>
+    <string name="masdatos">Details</string>
+    <string name="tomorrow">Tomorrow</string>
+    <string name="deseaborrarfoto">Want to remove picture ?</string>
+     <string name="deseaborrarsitio">Want to remove location ?</string>
+    <string name="confirmarborrado">Confirmation</string>
+    <string name="elijadia">Choose Location and Date</string>
+    <string name="alturaEnPies">Show height in feet</string>
+    <string name="alturaEnPiesDesc">Check this to show height of tides in feets</string>
+    <string name="preferencias">Settings</string>
+    
+        <string name="integrarAemet">Nothing else</string>
+    <string name="integrarAemetDesc">Nothing else</string>
+</resources>

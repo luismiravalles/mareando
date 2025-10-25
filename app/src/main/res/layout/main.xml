@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+     	     
+	xmlns:android="http://schemas.android.com/apk/res/android"
+
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"   
+    >
+    
+    <ScrollView android:id="@+id/scrollMapa"
+        	android:layout_alignParentTop="true"
+        	android:layout_alignParentLeft="true"
+        	android:layout_width="fill_parent"
+        	android:layout_height="20dp">
+        	<RelativeLayout
+        	    android:id="@+id/zonaApuntador"
+			    android:layout_width="fill_parent"
+    			android:layout_height="wrap_content"           	    
+        	    >
+		          <ImageView 
+			        	android:id="@+id/mapa"
+			        	android:layout_width="fill_parent"
+			        	android:layout_height="1700px"        	
+			        	android:src="@drawable/iberianorte" />		        	    	   
+        	</RelativeLayout>        	        	        
+    </ScrollView>
+    
+    <LinearLayout
+        	android:orientation="horizontal"
+        	android:id="@+id/partefija"
+        	android:layout_alignParentTop="true"
+        	android:layout_alignParentLeft="true"
+        	android:layout_width="fill_parent"
+        	android:layout_height="wrap_content"
+        />
+
+    <LinearLayout
+        android:orientation="vertical"        
+        	android:layout_alignParentTop="true"
+        	android:layout_alignParentLeft="true"
+        	android:layout_width="fill_parent"
+        	android:layout_height="fill_parent"
+    	      
+        >
+        
+
+	    <!--   AQUI DENTRO VA EL VIEWER -->
+		<LinearLayout
+			android:id="@+id/raiz"
+		    android:orientation="vertical"
+		    android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+	    
+			/>
+	
+	</LinearLayout>	        
+</RelativeLayout>    
+
