@@ -1,11 +1,16 @@
 package miravalles.tumareapro;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 import android.util.TypedValue;
@@ -124,6 +129,23 @@ public final class Util {
 	public static int thisMonth() {
 		return Calendar.getInstance().get(Calendar.MONTH);
 	}
-	
+
+
+	public static String leerAsset(Context context, String filename) {
+		try (InputStream is = context.getAssets().open(filename);
+			 BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
+
+			StringBuilder sb = new StringBuilder();
+			String line;
+			while ((line = reader.readLine()) != null) {
+				sb.append(line).append('\n');
+			}
+			return sb.toString();
+
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 }
 

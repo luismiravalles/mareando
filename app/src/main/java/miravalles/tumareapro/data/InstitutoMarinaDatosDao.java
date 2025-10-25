@@ -76,7 +76,10 @@ public class InstitutoMarinaDatosDao implements DatosDao {
                 guardarEnSitio(sitio, mes, fecha, hora, altura);
             }
         } catch(Exception e) {
+            // Cualquier error parseando el fichero debe implicar que lo
+            // borremos para forzar la carga posteriormente.
             Log.e("X", e.getMessage());
+            fichero.delete();
         }
     }
 
@@ -107,6 +110,9 @@ public class InstitutoMarinaDatosDao implements DatosDao {
 
         sitio.marea[mes][indice]=valorMarea;
         sitio.altura[mes][indice]=valorAltura;
+
+        //Log.i("X" , "Cargado " + sitio.nombre + " dia " + fecha + " " + hora
+        //               + "indice " + indice + " marea" + valorMarea);
     }
 
 
@@ -126,6 +132,7 @@ public class InstitutoMarinaDatosDao implements DatosDao {
     }
 
     private void descargarDatosRemotos(Sitio sitio, int mes) {
+        Log.i("INTERNET", "Descargando datos remotos de " + sitio.nombre + " mes " + mes);
         ConnectivityManager check = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo[] netInfo=check.getAllNetworkInfo();
         boolean conectado=false;
@@ -162,7 +169,7 @@ public class InstitutoMarinaDatosDao implements DatosDao {
 
 
     private String componerNombreLocal(Sitio sitio, int mes) {
-        return "datosIHM_" + sitio.getIdIHM()
+        return "datos_IHM_" + sitio.getIdIHM()
                 + "_"
                 +  year(mes) + String.format("%02d", mes);
     }
@@ -183,7 +190,7 @@ public class InstitutoMarinaDatosDao implements DatosDao {
         return URL_BASE
                 + "&id=" + sitio.getIdIHM()
                 + "&format=xml"
-                + "&month=" + year(mes) + String.format("%02d", mes);
+                + "&month=" + year(mes) + String.format("%02d", (mes+1));
     }
 
 }

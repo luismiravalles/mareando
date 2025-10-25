@@ -27,7 +27,8 @@
             </intent-filter>
         </activity>
         
-        <activity android:name="miravalles.tumareapro.TablaMareas" />"
+        <activity android:name="miravalles.tumareapro.TablaMareas" />
+        <activity android:name="miravalles.tumareapro.AvisoActivity" />
     </application>
     
     

@@ -21,7 +21,9 @@
     <string name="cancelar">Cancelar</string> 
     
     <string name="cambiarsitio">Elegir sitio</string>
+    <string name="cambiarFecha">Elegir fecha</string>
     <string name="masdatos">Más datos</string>
+    <string name="acercade">Acerca de ...</string>
     <string name="tomorrow">Mañana</string>
     
      <string name="deseaborrarsitio">¿ Desea borrar el sitio ?</string>

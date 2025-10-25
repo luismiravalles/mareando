@@ -3,56 +3,41 @@ package miravalles.tumareapro;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.function.Consumer;
 
 import miravalles.tumareapro.domain.Sitio;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
 import android.widget.Spinner;
 import android.widget.TimePicker;
 
-public class ElegirSitio extends Dialog {
+public class ElegirSitio  {
 	
-	Date fecha;
+
 	Sitio sitio;
-	DatePicker datePicker;
-	TimePicker timePicker;
 	Spinner listaSitios;
 	
 	List<Sitio> sitiosAlfa;
+
+	AlertDialog.Builder builder;
 	
 
-	public ElegirSitio(Context context, Date fecha, Sitio sitio) {
-		super(context);		
-		this.fecha=fecha;
-		this.sitio=sitio;
-	}
-	
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.elegir_sitio);
-		//datePicker=(DatePicker)findViewById(R.id.datePicker);
-		//timePicker=(TimePicker)findViewById(R.id.timePicker);
-		listaSitios=(Spinner)findViewById(R.id.sitio);
-		GregorianCalendar gc=new GregorianCalendar();
-		gc.setTime(fecha);
+	public ElegirSitio(final Context context, Sitio sitio, Consumer<Sitio> alAceptar) {
+		builder=new AlertDialog.Builder(context);
+		builder.setTitle("Elegir Sitio");
 
-		/*
-			Es posible que no quiera definir el datePicker porque no quiero
-			permitir un cambio de fecha, quizás lo permita en un diálogo separado.
-		 */
-		if(datePicker!=null) {
-			datePicker.updateDate(gc.get(gc.YEAR), gc.get(gc.MONTH), gc.get(gc.DAY_OF_MONTH));
-			timePicker.setIs24HourView(true);
-			timePicker.setCurrentHour(gc.get(gc.HOUR_OF_DAY));
-			timePicker.setCurrentMinute(gc.get(gc.MINUTE));
-		}
-		
-		
+		LayoutInflater inflater=LayoutInflater.from(context);
+		View dialogView=inflater.inflate(R.layout.elegir_sitio, null);
+		builder.setView(dialogView);
+
+		listaSitios=dialogView.findViewById(R.id.sitio);
 		sitiosAlfa=Modelo.get().getListaSitiosAlfa();
 		String []nombres=new String[sitiosAlfa.size()];
 		int seleccionado=0;
@@ -63,28 +48,21 @@ public class ElegirSitio extends Dialog {
 			nombres[i]=sitiosAlfa.get(i).nombre;
 		}
 		listaSitios.setAdapter(new ArrayAdapter<String>(
-					getContext(),android.R.layout.simple_spinner_dropdown_item, 
-					nombres));
+				context,android.R.layout.simple_spinner_dropdown_item,
+				nombres));
 		listaSitios.setSelection(seleccionado);
+		this.sitio=sitio;
 
-		// setOnShowListener(d -> listaSitios.post(() -> listaSitios.performClick()));
+		builder.setPositiveButton("Aceptar", (dialog, which) -> {
+			int item=listaSitios.getSelectedItemPosition();
+			alAceptar.accept(sitiosAlfa.get(item));
+		});
 	}
-	
-	public Date getFecha() {
-		if(datePicker==null) {
-			return new Date();
-		}
-		GregorianCalendar gc=new GregorianCalendar(
-				datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth()
-			, timePicker.getCurrentHour(), timePicker.getCurrentMinute());
-		return gc.getTime();
+
+
+	public void show() {
+		builder.show();
 	}
-	
-	public Sitio getSitioSeleccionado() {
-		int seleccionado=listaSitios.getSelectedItemPosition();
-		return sitiosAlfa.get(seleccionado);
-	}
-	
 	
 
 	

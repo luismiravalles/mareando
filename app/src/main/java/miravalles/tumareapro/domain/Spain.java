@@ -35,7 +35,7 @@ public class Spain implements Pais {
 			Element raiz=doc.getDocumentElement();
 			NodeList estaciones=raiz.getElementsByTagName("estacion");
 			for(int i=0; i<estaciones.getLength(); i++) {
-				Log.i("X", "Cargando estación");
+				// Log.i("X", "Cargando estación");
 				Element estacion=(Element)estaciones.item(i);
 				GeoLocalizacion geo=new GeoLocalizacion(
 						Double.parseDouble(estacion.getAttribute("lat")),

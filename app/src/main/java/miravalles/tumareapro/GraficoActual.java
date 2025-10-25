@@ -14,12 +14,14 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.LinearGradient;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Paint.Align;
 import android.graphics.Paint.Style;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.Shader.TileMode;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
@@ -119,83 +121,85 @@ public class GraficoActual extends View {
 	
 	@Override
 	protected void onDraw(Canvas canvas) {
-	
-		if(barquito==null) {
+
+		if (barquito == null) {
 			barquito = BitmapFactory.decodeResource(
-					getResources(), R.drawable.barquito_fondotransparente);            
+					getResources(), R.drawable.barquito_fondotransparente);
 
 		}
-		if(agua==null) {
+		if (agua == null) {
 			agua = BitmapFactory.decodeResource(getResources(), R.drawable.agua);
 		}
-		
-		if(iconoSubiendo==null) {
-			iconoSubiendo=BitmapFactory.decodeResource(
-					getResources(), R.drawable.subiendo); 
+
+		if (iconoSubiendo == null) {
+			iconoSubiendo = BitmapFactory.decodeResource(
+					getResources(), R.drawable.subiendo);
 		}
-		if(iconoBajando==null) {
-			iconoBajando=BitmapFactory.decodeResource(
+		if (iconoBajando == null) {
+			iconoBajando = BitmapFactory.decodeResource(
 					getResources(), R.drawable.bajando);
 		}
-		if(iconoSol==null) {
-			iconoSol=BitmapFactory.decodeResource(
+		if (iconoSol == null) {
+			iconoSol = BitmapFactory.decodeResource(
 					getResources(), R.drawable.sol);
 		}
-		if(iconoCoef==null) {
-			iconoCoef=BitmapFactory.decodeResource(
+		if (iconoCoef == null) {
+			iconoCoef = BitmapFactory.decodeResource(
 					getResources(), R.drawable.coef);
 		}
-	
+
 		//Rect rect=new Rect(0, canvas.getHeight()/2, canvas.getWidth(), canvas.getHeight());
-		final int anchoBorde=2;
-		
-		
+		final int anchoBorde = 2;
+
+
 		// Pintando el agua
-		Rect rect=rectPiscina();
-		int yAgua=getYMarea(info.getAltura());
-		rect.top=yAgua;
+		Rect rect = rectPiscina();
+		int yAgua = getYMarea(info.getAltura());
+		rect.top = yAgua;
 		rect.left = rect.left + anchoBorde;
 		rect.bottom = rect.bottom - anchoBorde;
 		rect.right = rect.right - anchoBorde;
-		Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);
+		Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		paint.setColor(0xFF0044FF);
 		paint.setStyle(Style.FILL);
-		
-		GradientDrawable gd=new GradientDrawable(
-				GradientDrawable.Orientation.TOP_BOTTOM, new int[] {0xFF0022CC, 0xFF001166});
+
+		GradientDrawable gd = new GradientDrawable(
+				GradientDrawable.Orientation.TOP_BOTTOM, new int[]{0xFF0022CC, 0xFF001166});
 		gd.setBounds(rect);
 		gd.draw(canvas);
-		
 
 
 		Rect rectCielo = pintarCielo(canvas, rect);
-		
+
 		pintarEstrellas(canvas, rectCielo);
 		try {
 			pintarLuna(canvas, rectCielo);
-		} catch(Exception e) {
-			
-		}
-		
-		// canvas.drawRect(rect, paint);
-		
-		
-		
-	    pintarBarquito(canvas, rect);
-		
+		} catch (Exception e) {
 
-		
-	    pintarAgua(canvas);
+		}
+
+		// canvas.drawRect(rect, paint);
+
+
+		pintarBarquito(canvas, rect);
+
+
+		pintarAgua(canvas);
 		pintarBordePiscina(canvas, anchoBorde);
-		
-		
+
+
 		pintarFondoAlturas(canvas);
-		pintarLeyendaMaximo(canvas,info,  Estilo.COLOR_TEXTO_HORA_PLEAMAR);
-		pintarLeyendaMinimo(canvas, info, Estilo.COLOR_TEXTO_HORA_BAJAMAR);
-		pintarLeyenda(canvas, info.getAltura(), getYMarea(info.getAltura()),
-					   info.getStringAltura(), Estilo.COLOR_ACTUAL);
-		
-		pintarIconoEstado(canvas, info);
+
+		if(info.alturaAnterior!=0 && info.alturaSiguiente!=0) {
+			pintarLeyendaMaximo(canvas, info, Estilo.COLOR_TEXTO_HORA_PLEAMAR);
+			pintarLeyendaMinimo(canvas, info, Estilo.COLOR_TEXTO_HORA_BAJAMAR);
+			pintarLeyenda(canvas, info.getAltura(), getYMarea(info.getAltura()),
+					info.getStringAltura(), Estilo.COLOR_ACTUAL);
+
+			pintarIconoEstado(canvas, info);
+		} else {
+			pintarTextoDialogo(canvas, "Obteniendo datos...");
+		}
 		pintarTexto(canvas, rectCielo, rect);
 		
 		pintarFondoTransicion(canvas);
@@ -225,6 +229,7 @@ public class GraficoActual extends View {
 				paint.setTextAlign(Align.RIGHT);
 				paint.setColor(Estilo.COLOR_TEXTO_TEMPERATURA);
 				paint.setTextSize(getTextSize());
+				paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
 				canvas.drawText(texto, x, y, paint);
 			}
 			
@@ -420,7 +425,64 @@ public class GraficoActual extends View {
 	private int getLeyendaSize() {
 		return getTextSize() * 5 / 4;
 	}
-	
+
+	private void pintarTextoDialogo(Canvas canvas, String texto) {
+		// Medidas del Canvas
+		int width = canvas.getWidth();
+		int height = canvas.getHeight();
+
+		// --- 1️⃣ Fondo semitransparente ---
+		Paint fondo = new Paint();
+		fondo.setColor(Color.argb(128, 0, 0, 0)); // Negro con transparencia
+		canvas.drawRect(0, 0, width, height, fondo);
+
+		// --- 2️⃣ Cuadro de "diálogo" ---
+		int dialogWidth = width * 3 / 4;
+		int dialogHeight = height / 5;
+
+		int left = (width - dialogWidth) / 2;
+		int top = (height - dialogHeight) / 2;
+		int right = left + dialogWidth;
+		int bottom = top + dialogHeight;
+
+		// Fondo blanco del diálogo
+		Paint paintDialog = new Paint();
+		paintDialog.setColor(Color.CYAN);
+		paintDialog.setStyle(Paint.Style.FILL);
+		paintDialog.setAntiAlias(true);
+		canvas.drawRoundRect(
+				new RectF(left, top, right, bottom),
+				30, 30, // esquinas redondeadas
+				paintDialog
+		);
+
+		// Borde gris
+		Paint borde = new Paint();
+		borde.setColor(Color.DKGRAY);
+		borde.setStyle(Paint.Style.STROKE);
+		borde.setStrokeWidth(4);
+		borde.setAntiAlias(true);
+		canvas.drawRoundRect(
+				new RectF(left, top, right, bottom),
+				30, 30,
+				borde
+		);
+
+		Paint textoPaint = new Paint();
+		textoPaint.setColor(Color.BLACK);
+		textoPaint.setTextSize(48);
+		textoPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+		textoPaint.setTextAlign(Paint.Align.CENTER);
+		textoPaint.setAntiAlias(true);
+
+		// Calcular posición vertical centrada
+		Paint.FontMetrics metrics = textoPaint.getFontMetrics();
+		float textHeight = metrics.bottom - metrics.top;
+		float textBase = top + (dialogHeight / 2f) + (textHeight / 4f);
+
+		canvas.drawText(texto, width / 2f, textBase, textoPaint);
+	}
+
 	private void pintarLeyenda(Canvas canvas, int valor, int yTexto, String texto, int color) {
 		Paint paint=new Paint();
 		paint.setAntiAlias(true);

@@ -176,8 +176,9 @@ public class Paginador extends PagerAdapter implements AemetListener {
 											float distanceY) {
 										Log.i("x", "Paginador: ACTION= " + e1.getAction());
 										if(distanceY > 20) {
-											setSinFoto(false);
-											setSize(zonaInfo, fotoView);											
+											// De momento no queremos mostrar o qitar foto
+											//setSinFoto(false);
+											//setSize(zonaInfo, fotoView);
 										} else if(distanceY < -20) {
 											setSinFoto(true);
 											setSize(zonaInfo, fotoView);
@@ -354,8 +355,10 @@ public class Paginador extends PagerAdapter implements AemetListener {
     }
     
     public void restaurarEstado() {
-    	SharedPreferences pref=PreferenceManager.getDefaultSharedPreferences(contexto);    	
-    	sinFoto=pref.getBoolean("sinFoto", false);
+    	SharedPreferences pref=PreferenceManager.getDefaultSharedPreferences(contexto);
+		sinFoto=true;
+		// De momento no queremos mostrar foto.
+    	// sinFoto=pref.getBoolean("sinFoto", false);
     }
     
     public void paginaCambiada(int pagina) {

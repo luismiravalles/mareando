@@ -2,7 +2,6 @@ package miravalles.tumareapro;
 
 import java.text.SimpleDateFormat;
 
-import miravalles.tumareapro.R;
 import android.app.Activity;
 import android.content.Context;
 import android.view.Gravity;
@@ -27,7 +26,7 @@ public class SitioView extends Button {
 		
 		setOnClickListener(new OnClickListener() {			
 			public void onClick(View v) {
-				((TuMareaActivity)getContext()).elegirFecha();
+				((TuMareaActivity)getContext()).elegirSitio();
 			}			
 		});
 		

@@ -20,7 +20,9 @@
     <string name="cancelar">Cancel</string> 
     
     <string name="cambiarsitio">Choose Location &amp; Date</string>
+    <string name="cambiarFecha">Choose date</string>
     <string name="masdatos">Details</string>
+    <string name="acercade">About ...</string>
     <string name="tomorrow">Tomorrow</string>
     <string name="deseaborrarfoto">Want to remove picture ?</string>
      <string name="deseaborrarsitio">Want to remove location ?</string>

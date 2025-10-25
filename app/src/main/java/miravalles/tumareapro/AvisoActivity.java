@@ -23,20 +23,11 @@ public class AvisoActivity extends Activity  {
 						LayoutParams.FILL_PARENT);
 		vista.setLayoutParams(lp);
 		setContentView(vista);
-		vista.addJavascriptInterface(new Escuchador(), "android");
-		vista.loadUrl("file:///android_asset/" + aviso + ".html");
+		vista.getSettings().setAllowFileAccess(true);
+		String textoHtml=Util.leerAsset(this.getApplicationContext(),aviso + ".html");
+		vista.loadDataWithBaseURL("file:///android_asset/", textoHtml, "text/html", "utf-8", null);
 	}
 
-	public class Escuchador {
-		public void visitar() {
-			Toast.makeText(AvisoActivity.this, "Hola mundo", Toast.LENGTH_LONG).show();
-			/*
-			Intent intent = new Intent(Intent.ACTION_VIEW);		
-			intent.setData(Uri.parse("market://details?id=miravalles.tumarea"));
-			startActivity(intent);
-			*/				
-		}
-	}
 	
 	
 	

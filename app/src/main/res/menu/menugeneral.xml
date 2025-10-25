@@ -4,6 +4,10 @@
     <item android:id="@+id/cambiar_sitio"
         	android:title="@string/cambiarsitio">
     </item>
+
+	<item android:id="@+id/cambiar_fecha"
+		android:title="@string/cambiarFecha">
+	</item>
     
     <item android:id="@+id/masdatos"
 		  android:visible="false"
@@ -46,6 +50,9 @@
     <item 	android:id="@+id/ayuda"
 			android:visible="false"
           	android:title="@string/ayuda"
-    />   
+    />
+
+	<item android:id="@+id/acercade"
+		android:title="@string/acercade"/>
     
 </menu>

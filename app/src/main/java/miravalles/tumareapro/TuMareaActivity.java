@@ -3,6 +3,7 @@ package miravalles.tumareapro;
 import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -13,6 +14,7 @@ import miravalles.tumareapro.vo.GeoLocalizacion;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.DatePickerDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnDismissListener;
 import android.content.Intent;
@@ -33,6 +35,7 @@ import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.viewpager.widget.ViewPager;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -105,6 +108,8 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 
 	@Override
     public void onCreate(Bundle savedInstanceState) {
+
+		AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
     	
 		Config.init(this);
 		
@@ -208,7 +213,7 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
         apuntador.setLayoutParams(lpApuntador);
         zonaApuntador.addView(apuntador);
         if(!restaurarPosicion())  {
-        	elegirFecha();
+        	elegirSitio();
         }
         paginaCambiada(getPagina());
     }
@@ -443,7 +448,6 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 		} else {
 			Util.mostrarAviso(TuMareaActivity.this, "masdatos" );
 		}
-
 	}
 
 	private void mostrarTablaMareas() {
@@ -644,20 +648,25 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 	            mostrarAjustes();
 	            return true;
 		}
-		if(item.getItemId()==R.id.ayuda){
-	        	Util.mostrarAviso(TuMareaActivity.this, "ayuda." + getPackageName() );
-	            return true;
-		}
+
 		if(item.getItemId()==R.id.tabla){
 	        	mostrarTablaMareas();
 	        	return true;
 		}
 		if(item.getItemId()==R.id.cambiar_sitio){
-	        	elegirFecha();
+	        	elegirSitio();
 	        	return true;
+		}
+		if(item.getItemId()==R.id.cambiar_fecha){
+			elegirFecha();
+			return true;
 		}
 		if(item.getItemId()==R.id.masdatos) {
 			masDatos();
+			return true;
+		}
+		if(item.getItemId()==R.id.acercade) {
+			Util.mostrarAviso(TuMareaActivity.this, "acercaDeMareando" );
 			return true;
 		}
 		return super.onContextItemSelected(item);
@@ -742,22 +751,45 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 	
 
 	
-    public void elegirFecha() {
-    	final int position=getPagina();
-    	final ElegirSitio d=new ElegirSitio(this,
-    			getFechaVista(), Modelo.get().getSitio(position));
-    	d.setTitle(getResources().getString(R.string.elijadia));
-    	d.setOnDismissListener(new OnDismissListener() {
-			 public void onDismiss(DialogInterface arg0) {
-					cambiarFecha(position, d.getFecha());
-					Sitio sitio=d.getSitioSeleccionado();
-					int indice=Modelo.get().getIndiceSitio(sitio);
+    public void elegirSitio() {
+		new ElegirSitio(this,
+    			Modelo.get().getSitio(getPagina()),
+				sitioSeleccionado  -> {
+					int indice=Modelo.get().getIndiceSitio(sitioSeleccionado);
 					pager.setCurrentItem(indice);
 					guardarPosicion();
-			}
-    	});
-    	d.show();
+				}
+				).show();
     }
+
+	public void elegirFecha() {
+		Calendar calendar = Calendar.getInstance();
+
+		int year = calendar.get(Calendar.YEAR);
+		int month = calendar.get(Calendar.MONTH);
+		int day = calendar.get(Calendar.DAY_OF_MONTH);
+
+		DatePickerDialog datePickerDialog = new DatePickerDialog(
+				this,
+				(view, selectedYear, selectedMonth, selectedDay) -> {
+
+					Calendar cal = Calendar.getInstance();
+					cal.set(Calendar.YEAR, selectedYear);
+					cal.set(Calendar.MONTH, selectedMonth);       // Ojo: enero = 0
+					cal.set(Calendar.DAY_OF_MONTH, selectedDay);
+
+					Date fechaElegida = cal.getTime();
+					cambiarFecha(getPagina(), fechaElegida);
+					Log.i("X", "Elegida fecha " + fechaElegida);
+
+				},
+				year, month, day
+		);
+		datePickerDialog.getDatePicker().setMinDate(calendar.getTimeInMillis());
+		calendar.add(Calendar.YEAR, 1);
+		datePickerDialog.getDatePicker().setMaxDate(calendar.getTimeInMillis());
+		datePickerDialog.show();
+	}
     
     private void cambiarFecha(int position, Date fecha) {
     	Modelo modelo=Modelo.get();
