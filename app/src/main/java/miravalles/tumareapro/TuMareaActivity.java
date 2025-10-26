@@ -6,17 +6,14 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import miravalles.BitmapUtil;
 import miravalles.tumareapro.domain.Foto;
-import miravalles.tumareapro.domain.Sitio;
 import miravalles.tumareapro.vo.GeoLocalizacion;
 
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.DatePickerDialog;
-import android.content.DialogInterface;
-import android.content.DialogInterface.OnDismissListener;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -31,12 +28,14 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
-import androidx.viewpager.widget.ViewPager;
+
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -60,9 +59,9 @@ import android.widget.Toast;
 public class TuMareaActivity extends AppCompatActivity implements OnClickListener, LocationListener {
 
 	public static final String MIRAVALLES_TUMAREAPRO = "miravalles.tumareapro";
-	Paginador paginador;
+	MareaVisor mareaVisor;
 	ViewGroup raiz;
-	ViewPager pager;
+
 	Modelo modelo;
 	private Date	 fechaVista;
 	// private SitioView sitioView;
@@ -127,29 +126,27 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
         setContentView(R.layout.main);
         
         scrollMapa=(ScrollView)findViewById(R.id.scrollMapa);
-        scrollMapa.getLayoutParams().height=(int)Mapa.getBordeInferiorPx(this);   	
-    	
-        
-        
+        scrollMapa.getLayoutParams().height=(int)Mapa.getBordeInferiorPx(this);
+
+        /*
         LinearLayout parteFija=(LinearLayout)findViewById(R.id.partefija);
         parteFija.setPadding(
         		Util.widthPct(12, parteFija),
         		Util.heightPct(7, parteFija), 
         		0,0);
-//        sitioView=new SitioView(this,modelo);
-//        parteFija.addView(sitioView);
-
+		*/
         
         Log.d("X","El mapa mide de alto " + 
         			(int)Mapa.getBordeInferiorPx(this));
         
         raiz=(ViewGroup)findViewById(R.id.raiz);
+		/*
         raiz.setPadding(
         		0, // Util.widthPct(12, raiz),
         		(int)Mapa.getBordeInferiorPx(this), // Deber�a ser esto pero queda un hueco no se prque        		
         		// Util.heightPct(20, raiz), 
         		0,0);
-        		
+        */
         zonaApuntador=(RelativeLayout)findViewById(R.id.zonaApuntador);
 
         fechaVista=new Date();        
@@ -158,32 +155,9 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
         	return;
         }
 
-        pager=new ViewPager(this) {
-        	@Override
-        	public boolean onInterceptTouchEvent(MotionEvent event) {
-        		Log.i("x","Intercept" + event.getY());
-        		if(respetarTouchEvent) {
-        			return false;
-        		}
-        		return super.onInterceptTouchEvent(event);
-        	}
-        };
+        mareaVisor =new MareaVisor(this, modelo);
+		raiz.addView(mareaVisor.crearView(this));
 
-        raiz.addView(pager);
-        paginador=new Paginador(this, modelo);
-        pager.setAdapter(paginador);
-        
-        pager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-			public void onPageScrollStateChanged(int arg0) {}
-			public void onPageScrolled(int arg0, float arg1, int arg2) {}
-			public void onPageSelected(int arg0) {
-				paginaCambiada(arg0);
-			}		
-	
-		});
-        
-
-                
         mapaView=(ImageView)findViewById(R.id.mapa);
         mapaView.setAdjustViewBounds(true);
         mapaView.setScaleType(ScaleType.FIT_START);
@@ -215,7 +189,7 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
         if(!restaurarPosicion())  {
         	elegirSitio();
         }
-        paginaCambiada(getPagina());
+        sitioCambiado(getIndiceSitio());
     }
 
 	private void verificarZonaHoraria() {
@@ -224,8 +198,8 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
     	Log.d("X", "Offset=" + offset);
     	if(offset > 2 * 60 * 60 * 1000 || offset < 0) {
     		Toast.makeText(this,
-    			"�� Aviso !! Su tel�fono est� configurado en una zona horaria que no es" +
-    			"de la pen�nsula ni de Canarias. Los horarios no ser�n correctos.",
+    			" Aviso !! Su teléfono está configurado en una zona horaria que no es" +
+    			"de la península ni de Canarias. Los horarios no serán correctos.",
     			Toast.LENGTH_LONG).show();
     	}
 	}
@@ -235,22 +209,18 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
     
     @Override
     public void onResume() {
-    	cargarPreferencias();
     	Log.d("T","On Resume");
-    	fechaVista=new Date();
-    	super.onResume();   
-    	restaurarPosicion();    	
-    	refresh();
+    	super.onResume();
     }
     
     
     public void refresh() {
-    	paginador.notifyDataSetChanged();
-    	paginaCambiada(getPagina());
+    	mareaVisor.refresh();
+    	sitioCambiado(getIndiceSitio());
     }
     
     public void refreshFecha() {
-    	mostrarPosicionYFecha(getPagina());
+    	mostrarPosicionYFecha(getIndiceSitio());
     }
     
     
@@ -269,7 +239,7 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
     public void guardarPosicion() {
     	SharedPreferences pref=PreferenceManager.getDefaultSharedPreferences(this);
     	Editor edit=pref.edit();
-    	edit.putInt("posicion", getPagina());
+    	edit.putInt("posicion", getIndiceSitio());
     	
     	try {
 			PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
@@ -287,21 +257,11 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
     	SharedPreferences pref=PreferenceManager.getDefaultSharedPreferences(this);    	
     	int pos=pref.getInt("posicion", -1);
     	boolean mostrarElegirSitio=false;
-//    	try {
-//			PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-//			int versionGuardada=pref.getInt("version", 0);
-//			if(versionGuardada<pInfo.versionCode) {
-//				mostrarElegirSitio=true;
-//			}
-//		} catch (NameNotFoundException e) {
-//		}    	
-    	
     	if(pos<0 || pos>=Modelo.get().getNumSitios()) {
     		mostrarElegirSitio=true;
-    	}
-    	
-    	pager.setCurrentItem(pos);
-    	
+    	} else {
+			mareaVisor.setIndiceSitio(pos);
+		}
     	return (!mostrarElegirSitio);
     }
     
@@ -310,17 +270,16 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
     	anchoScreenMapa = display.getWidth();    	
     }
     
-    
- 
-    public void paginaCambiada(int pagina) {    	
-    	double latitud=modelo.getGeo(pagina).y();
-    	
-    	double longitud=modelo.getGeo(pagina).x();
+
+
+    public void sitioCambiado(int indiceSitio) {
+    	double latitud=modelo.getGeo(indiceSitio).y();
+
+    	double longitud=modelo.getGeo(indiceSitio).x();
     	Mapa mapa=Mapa.getMapa(latitud);
     	pintarMapa(latitud, longitud, mapa);
-	    	
-	    mostrarPosicionYFecha(pagina);
-        paginador.paginaCambiada(pagina);
+
+	    mostrarPosicionYFecha(indiceSitio);
     }
 
 	private void pintarMapa(double latitud, double longitud, Mapa mapa) {
@@ -370,27 +329,10 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
     	final int finalScroll=yScroll;
     	
     	mapaView.setImageBitmap(bitmap);
-    	
-    	new AsyncTask<String, Void, String>() {
-    		
-    		@Override
-    		protected void onPostExecute(String result) {
-    			scrollMapa.smoothScrollTo(0, finalScroll);
-    			super.onPostExecute(result);
-    		}
 
-			@Override
-			protected String doInBackground(String... params) {
-				try {
-					Thread.sleep(500);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				return null;
-			}
-    		
-		}.execute();
+		new Handler(Looper.getMainLooper()).postDelayed(() -> {
+			scrollMapa.smoothScrollTo(0, finalScroll);
+		}, 1000);
     	
 //    	scrollMapa.smoothScrollTo(0, yScroll);
 //    	scrollMapa.setScrollY(yScroll);
@@ -416,7 +358,7 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
     	
     	Log.i("B", "Buscando posicion " + x + " _ " + y);
     	
-    	Mapa mapa=Mapa.getMapa(modelo.getGeo(getPagina()).y());
+    	Mapa mapa=Mapa.getMapa(modelo.getGeo(getIndiceSitio()).y());
 
     	double rangoLatitud=mapa.getRangoLatitud();
     	double rangoLongitud=mapa.getRangoLongitud();
@@ -434,15 +376,16 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
     	
     	Log.i("B", "Buscando posicion lat/long " + latitud + " , " + longitud);
 
-    	int posicion=modelo.buscarSitioPorPosicion(new GeoLocalizacion(latitud, longitud));
-    	pager.setCurrentItem(posicion);
+    	int indiceSitio=modelo.buscarSitioPorPosicion(new GeoLocalizacion(latitud, longitud));
+		sitioCambiado(indiceSitio);
+		mareaVisor.setIndiceSitio(indiceSitio);
     }
 	
 	private void masDatos() {
 		if(getPackageName().equals(MIRAVALLES_TUMAREAPRO)) {
 			Intent myIntent = new Intent(TuMareaActivity.this, 
 					MasDatos.class);
-			myIntent.putExtra("posicion", getPagina()); 
+			myIntent.putExtra("posicion", getIndiceSitio());
 			myIntent.putExtra("fecha", fechaVista.getTime());
 			TuMareaActivity.this.startActivity(myIntent);	
 		} else {
@@ -453,7 +396,7 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 	private void mostrarTablaMareas() {
 		Intent myIntent = new Intent(TuMareaActivity.this, 
 				TablaMareas.class);
-		myIntent.putExtra("posicion", getPagina()); 
+		myIntent.putExtra("posicion", getIndiceSitio());
 		myIntent.putExtra("fecha", fechaVista.getTime());
 		TuMareaActivity.this.startActivity(myIntent);
 	}	
@@ -487,7 +430,7 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 	public void takePhoto() {
 	    Intent intent = new Intent("android.media.action.IMAGE_CAPTURE");
 	    
-	    int sitio=getPagina();
+	    int sitio= getIndiceSitio();
     
 	    MareaInfo info=modelo.getMareaInfo(sitio, fechaVista);
 	    Integer alturaImagen=info.getAltura();
@@ -502,57 +445,13 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 	}
 
 	@Override
-	public void onActivityResult(int requestCode, int resultCode, Intent data) {
-	    super.onActivityResult(requestCode, resultCode, data);
-	    switch (requestCode) {
-		    case TAKE_PICTURE:
-		        if (resultCode == Activity.RESULT_OK) {
-		    	    int sitio=getPagina();
-		    	    MareaInfo info=modelo.getMareaInfo(sitio, fechaVista);
-		    	    Integer alturaImagen=info.getAltura();			            
-	                modelo.addFoto(getPagina(), alturaImagen);
-	                refresh();
-		        }
-		        break;
-		    case CREAR_SITIO:
-		    	if(resultCode == Activity.RESULT_OK){
-		    		int posicion=Modelo.get().getNumSitios()-1;
-		    		pager.setAdapter(null);
-		    		pager.setAdapter(paginador);		    		
-		    		Modelo.get().guardarSitiosDeUsuario(this);
-		    		Log.d("X", "Nueva posicion : " + posicion);
-		    		pager.setCurrentItem(posicion);
-		    		guardarPosicion(); 
-		    	}
-		    	break;
-		    case PREFERENCIAS:
-		    	cargarPreferencias();
-		    	refresh();
-		    	break;
-		    	
-	    }
-	    
-	}
-	
-	private void borrarFoto() {
-		int sitio=getPagina();
-	    MareaInfo info=modelo.getMareaInfo(sitio, fechaVista);
-	    int alturaImagen=info.getAltura();
-		modelo.removeFoto(sitio, alturaImagen);
-		refresh();
-	}	
- 
-	@Override
 	public void onConfigurationChanged(Configuration newConfig) {
 	    super.onConfigurationChanged(newConfig);
 	    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 	}
-	
-
 
 	public void onLocationChanged(Location location) {
 
-		
 	}
 
 	public void onProviderDisabled(String provider) {
@@ -569,52 +468,15 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 		// TODO Auto-generated method stub
 		
 	}
-	
-	public void borrarSitio() {
-		new AlertDialog.Builder(TuMareaActivity.this)
-		.setIcon(android.R.drawable.ic_delete)
-		.setTitle(getResources().getString(R.string.confirmarborrado))
-		.setMessage(getResources().getString(R.string.deseaborrarsitio))
-		.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-		           public void onClick(DialogInterface dialog, int id) {
-		                borrarSitioDefinitivamente();
-		           }
-		       })
-       .setNegativeButton("No", new DialogInterface.OnClickListener() {
-           public void onClick(DialogInterface dialog, int id) {
-                dialog.cancel();
-           }})
-        .show();
-		
-	}
-	
-	public void borrarSitioDefinitivamente() {
-		int sitio=getPagina();
-		Modelo.get().borrarSitio(sitio);
-		sitio--;
-		pager.setAdapter(paginador);
-		pager.setCurrentItem(sitio);
-		Modelo.get().guardarSitiosDeUsuario(this);
-	}
-    
-	
+
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v,
 			ContextMenuInfo menuInfo) {
 	    super.onCreateContextMenu(menu, v, menuInfo);
-	    if("Foto".equals(v.getTag())) {
-		    MenuInflater inflater = getMenuInflater();	    
-		    inflater.inflate(R.menu.menufoto, menu);
-		    int pagina=getPagina();
-	    	Foto foto=paginador.getFotoMostrada(pagina);	    		    	
-	    	if(foto==null || !foto.isExterna() || foto.codFoto==R.drawable.imgnodisponible) {
-	    		menu.findItem(R.id.menu_borrar_imagen).setEnabled(false);	
-	    		menu.findItem(R.id.menu_ver_imagen).setEnabled(false);
-	    	}
-	    } else if ("Sitio".equals(v.getTag())) {
+	    if ("Sitio".equals(v.getTag())) {
 	    	MenuInflater inflater = getMenuInflater();	    
 		    inflater.inflate(R.menu.menusitio, menu);
-		    int pagina=getPagina();
+		    int pagina= getIndiceSitio();
 	    	if(!Modelo.get().getSitio(pagina).deUsuario) {	    	
 	    		menu.findItem(R.id.menu_borrar_sitio).setEnabled(false);	
 	    	}	    	
@@ -622,28 +484,6 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 	}
 	
 	public boolean procesarItemSelected(MenuItem item) {
-	    if(item.getItemId()==R.id.menu_nueva_imagen) {
-			camara();
-			return true;
-		}
-		if(item.getItemId()==R.id.menu_ver_imagen) {
-			int pagina = getPagina();
-			Foto foto = paginador.getFotoMostrada(pagina);
-			paginador.verFotoAmpliada(foto, pagina);
-			return true;
-		}
-		if(item.getItemId()==R.id.menu_borrar_imagen){
-			accionBorrarFoto();
-			return true;
-		}
-		if(item.getItemId()==R.id.menu_borrar_sitio) {
-			borrarSitio();
-			return true;
-		}
-		if(item.getItemId()==R.id.menu_nuevo_sitio){
-	        	crearSitio();
-	        	return true;
-		}
 		if(item.getItemId()==R.id.menu_ajustes){
 	            mostrarAjustes();
 	            return true;
@@ -679,23 +519,7 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 	    return procesarItemSelected(item);
 	}
 
-	private void accionBorrarFoto() {
-		new AlertDialog.Builder(TuMareaActivity.this)
-			.setIcon(android.R.drawable.ic_delete)
-			.setTitle(getResources().getString(R.string.confirmarborrado))
-			.setMessage(getResources().getString(R.string.deseaborrarfoto))
-			.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-			           public void onClick(DialogInterface dialog, int id) {
-			                borrarFoto();
-			           }
-			       })
-		   .setNegativeButton("No", new DialogInterface.OnClickListener() {
-		       public void onClick(DialogInterface dialog, int id) {
-		            dialog.cancel();
-		       }})
-		    .show();
-	}
-	
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 	    MenuInflater inflater = getMenuInflater();
@@ -705,21 +529,7 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 	
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
-	    int pagina=getPagina();
-
-    	Foto foto=paginador.getFotoMostrada(pagina);	    		    	
-    	if(foto==null || !foto.isExterna() || foto.codFoto==R.drawable.imgnodisponible) {
-    		menu.findItem(R.id.menu_borrar_imagen).setEnabled(false);	
-    		menu.findItem(R.id.menu_ver_imagen).setEnabled(false);
-    	} else {
-    		menu.findItem(R.id.menu_borrar_imagen).setEnabled(true);	
-    		menu.findItem(R.id.menu_ver_imagen).setEnabled(true);   		
-    	}
-    	if(!Modelo.get().getSitio(pagina).deUsuario) {	    	
-    		menu.findItem(R.id.menu_borrar_sitio).setEnabled(false);	
-    	} else {
-    		menu.findItem(R.id.menu_borrar_sitio).setEnabled(true);
-    	}
+	    int pagina= getIndiceSitio();
     	menu.findItem(R.id.masdatos).setEnabled(!Config.isEngland());
 	    return true;
 	}
@@ -753,10 +563,11 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 	
     public void elegirSitio() {
 		new ElegirSitio(this,
-    			Modelo.get().getSitio(getPagina()),
+    			Modelo.get().getSitio(getIndiceSitio()),
 				sitioSeleccionado  -> {
 					int indice=Modelo.get().getIndiceSitio(sitioSeleccionado);
-					pager.setCurrentItem(indice);
+					mareaVisor.setIndiceSitio(indice);
+					sitioCambiado(indice);
 					guardarPosicion();
 				}
 				).show();
@@ -779,7 +590,7 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 					cal.set(Calendar.DAY_OF_MONTH, selectedDay);
 
 					Date fechaElegida = cal.getTime();
-					cambiarFecha(getPagina(), fechaElegida);
+					cambiarFecha(getIndiceSitio(), fechaElegida);
 					Log.i("X", "Elegida fecha " + fechaElegida);
 
 				},
@@ -793,16 +604,12 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
     
     private void cambiarFecha(int position, Date fecha) {
     	Modelo modelo=Modelo.get();
-    	if(!modelo.existeFecha(fecha)) {
-    		mostrarErrorFecha();
-    		return;
-    	}
     	setFechaVista(fecha);
-    	pager.getAdapter().notifyDataSetChanged();
+    	mareaVisor.refresh();
     }        
 	
-    public int getPagina() {
-    	return pager.getCurrentItem();
+    public int getIndiceSitio() {
+    	return mareaVisor.getIndiceSitio();
     }
     
 }

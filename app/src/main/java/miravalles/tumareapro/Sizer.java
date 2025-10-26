@@ -24,12 +24,14 @@ public class Sizer {
 	}
 	
 	public Sizer fillWidth() {
-		v.getLayoutParams().width=LayoutParams.FILL_PARENT;
+		v.getLayoutParams().width=LayoutParams.MATCH_PARENT;
 		return this;
 	}
+
+
 	
 	public Sizer fillHeight() {
-		v.getLayoutParams().height=LayoutParams.FILL_PARENT;
+		v.getLayoutParams().height=LayoutParams.MATCH_PARENT;
 		return this;
 	}
 	
@@ -75,5 +77,12 @@ public class Sizer {
 		/ 100;			
 		return this;
 	}
+
+	public Sizer weightY(float w) {
+		((LinearLayout.LayoutParams)v.getLayoutParams()).weight=w;
+		v.getLayoutParams().height=0;
+		return this;
+	}
+
 
 }

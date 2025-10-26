@@ -15,6 +15,8 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import miravalles.tumareapro.data.CoeficientesDao;
 import miravalles.tumareapro.domain.DatosListener;
@@ -28,6 +30,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Toast;
@@ -568,22 +572,17 @@ public class Modelo {
 	
 	public void cargarCoeficientes(Context contexto, DatosListener listener)  {
 		if(coeficientes!=null) {
-			listener.datosCargados(null);
+			listener.datosCargados();
 			return;
 		}
-		AsyncTask<String, Void, String> tarea=new AsyncTask<String, Void, String>() {
-			@Override
-			protected String doInBackground(String... params) {
-				CoeficientesDao coeficientesDao=new  CoeficientesDao(contexto);
-				coeficientes=coeficientesDao.cargarCoeficientes(Util.thisYear());
-				return "";
-			}
-			@Override
-			protected void onPostExecute(String result) {
-				listener.datosCargados(null);
-			}
-		};
-		tarea.execute();
+		Executor executor= Executors.newSingleThreadExecutor();
+		executor.execute(() -> {
+			CoeficientesDao coeficientesDao=new  CoeficientesDao(contexto);
+			coeficientes=coeficientesDao.cargarCoeficientes(Util.thisYear());
+			new Handler(Looper.getMainLooper()).post(() ->{
+				listener.datosCargados();
+			});
+		});
 	}
 	
 }

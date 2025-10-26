@@ -56,7 +56,7 @@ public class Aemet {
 	
 	private static AemetInfo obtenerDatos(Context context, String codigo) {
 		
-		if(codigo==null) {
+		if(codigo==null || codigo.length()==0) {
 			return null;
 		}
 		
@@ -82,6 +82,7 @@ public class Aemet {
 		try {
 			AemetInfo info=new AemetInfo();
 			URL url=new URL(BASE_URL + codigo + SUFIJO);
+			Log.i("AEMET", "Descargando datos Aemet desde " + url);
 			HttpURLConnection conn=(HttpURLConnection)url.openConnection();
 			conn.connect();
 			InputStream is=conn.getInputStream();

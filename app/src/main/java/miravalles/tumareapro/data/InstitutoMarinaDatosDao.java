@@ -47,19 +47,19 @@ public class InstitutoMarinaDatosDao implements DatosDao {
         this.context=context;
     }
 
-    public void obtenerDatosMes(Sitio sitio, int mes) {
+    public void obtenerDatosMes(Sitio sitio, int ano, int mes) {
         Log.i("X", "Obtener datos de " + sitio.nombre + " mes " + mes);
-        if(hayDatosLocales(sitio, mes)) {
-            cargarDatosLocales(sitio, mes);
+        if(hayDatosLocales(sitio, ano, mes)) {
+            cargarDatosLocales(sitio, ano, mes);
             return;
         }
-        descargarDatosRemotos(sitio,mes);
-        cargarDatosLocales(sitio,mes);
+        descargarDatosRemotos(sitio, ano, mes);
+        cargarDatosLocales(sitio, ano, mes);
     }
 
-    private void cargarDatosLocales(Sitio sitio, int mes) {
+    private void cargarDatosLocales(Sitio sitio, int ano, int mes) {
         Log.i("X", "Datos Locales de " + sitio.nombre + " mes " + mes);
-        File fichero=getFileLocal(sitio, mes);
+        File fichero=getFileLocal(sitio, ano, mes);
         try(InputStream in=new FileInputStream(fichero)) {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
@@ -121,17 +121,17 @@ public class InstitutoMarinaDatosDao implements DatosDao {
         return Integer.parseInt(fecha.substring(8));
     }
 
-    private File getFileLocal(Sitio sitio, int mes) {
-        String nombreLocal=componerNombreLocal(sitio, mes);
+    private File getFileLocal(Sitio sitio, int ano, int mes) {
+        String nombreLocal=componerNombreLocal(sitio, ano, mes);
         return new File(context.getFilesDir(), nombreLocal);
     }
 
-    private boolean hayDatosLocales(Sitio sitio, int mes) {
-        File fichero=getFileLocal(sitio, mes);
+    private boolean hayDatosLocales(Sitio sitio, int ano, int mes) {
+        File fichero=getFileLocal(sitio, ano, mes);
         return fichero.exists() && fichero.length()>0;
     }
 
-    private void descargarDatosRemotos(Sitio sitio, int mes) {
+    private void descargarDatosRemotos(Sitio sitio, int ano, int mes) {
         Log.i("INTERNET", "Descargando datos remotos de " + sitio.nombre + " mes " + mes);
         ConnectivityManager check = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo[] netInfo=check.getAllNetworkInfo();
@@ -148,10 +148,11 @@ public class InstitutoMarinaDatosDao implements DatosDao {
         }
         Log.i("X", "Verificada");
         try {
-            URL url = new URL(componerUrl(sitio, mes));
+            URL url = new URL(componerUrl(sitio, ano,  mes));
+            Log.i("X", "Descargando de " + url);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.connect();
-            File ficheroLocal=getFileLocal(sitio, mes);
+            File ficheroLocal=getFileLocal(sitio, ano, mes);
             try(
                 InputStream in = conn.getInputStream();
                 OutputStream out= new FileOutputStream(ficheroLocal);
@@ -168,10 +169,10 @@ public class InstitutoMarinaDatosDao implements DatosDao {
     }
 
 
-    private String componerNombreLocal(Sitio sitio, int mes) {
+    private String componerNombreLocal(Sitio sitio, int ano, int mes) {
         return "datos_IHM_" + sitio.getIdIHM()
                 + "_"
-                +  year(mes) + String.format("%02d", mes);
+                +  ano + String.format("%02d", mes);
     }
 
     /**
@@ -186,11 +187,11 @@ public class InstitutoMarinaDatosDao implements DatosDao {
         }
         return year;
     }
-    private String componerUrl(Sitio sitio, int mes) {
+    private String componerUrl(Sitio sitio, int ano, int mes) {
         return URL_BASE
                 + "&id=" + sitio.getIdIHM()
                 + "&format=xml"
-                + "&month=" + year(mes) + String.format("%02d", (mes+1));
+                + "&month=" + ano + String.format("%02d", (mes+1));
     }
 
 }

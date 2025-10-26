@@ -2,5 +2,5 @@ package miravalles.tumareapro.domain;
 
 public interface DatosListener {
 
-    void datosCargados(Sitio sitio);
+    void datosCargados();
 }

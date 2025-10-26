@@ -60,7 +60,7 @@ public class CacheDao<T> {
         ConnectivityManager check = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo[] netInfo=check.getAllNetworkInfo();
         boolean conectado=false;
-        Log.i("X", "Verificando red...");
+        Log.i("X", "Cachedao Verificando red..." + arg);
         for(int i=0; i<netInfo.length; i++) {
             if(netInfo[i].getState()==NetworkInfo.State.CONNECTED) {
                 conectado=true;
@@ -73,6 +73,7 @@ public class CacheDao<T> {
         Log.i("X", "Verificada");
         try {
             URL url = new URL(componerUrl(arg));
+            Log.i("CACHE", "Descargando de " +  url);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.connect();
             File ficheroLocal=getFileLocal(arg);

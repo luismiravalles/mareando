@@ -11,7 +11,8 @@ public interface DatosDao {
     /**
      * Obtener los datos de marea y alturas de un sitio para un mes determinado.
      * @param sitio
+     * @param ano
      * @param mes
      */
-    void obtenerDatosMes(Sitio sitio, int mes);
+    void obtenerDatosMes(Sitio sitio, int ano, int mes);
 }

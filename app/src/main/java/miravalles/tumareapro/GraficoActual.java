@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import miravalles.tumareapro.domain.AemetInfo;
-import miravalles.tumareapro.R;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -41,7 +41,7 @@ public class GraficoActual extends View {
 	
 	private static Map<String, Bitmap> bitmaps=new HashMap<String,Bitmap>();
 	
-	private int position;
+	private int indiceSitio;
 	
 	MareaInfo info;
 	private int width;
@@ -60,8 +60,9 @@ public class GraficoActual extends View {
 		return 0;
 	}
 
-	public void setInfo(MareaInfo info) {
+	public void setInfo(MareaInfo info, int indiceSitio) {
 		this.info=info;
+		this.indiceSitio=indiceSitio;
 	}
 
 	@Override
@@ -71,9 +72,8 @@ public class GraficoActual extends View {
 		this.height=h;
 	}
 
-	public GraficoActual(Context context, int position) {
+	public GraficoActual(Context context) {
 		super(context);		
-		this.position=position;
 	}
 	
 	protected Rect rectPiscina() {
@@ -97,7 +97,7 @@ public class GraficoActual extends View {
 	}
 	
 	public int getMargenInferior() {
-		return getTextSize() * 4;
+		return 0;
 	}
 	
 	
@@ -121,6 +121,10 @@ public class GraficoActual extends View {
 	
 	@Override
 	protected void onDraw(Canvas canvas) {
+
+		if(info==null) {
+			return; // Aun no tenemos datos...
+		}
 
 		if (barquito == null) {
 			barquito = BitmapFactory.decodeResource(
@@ -199,13 +203,17 @@ public class GraficoActual extends View {
 			pintarIconoEstado(canvas, info);
 		} else {
 			pintarTextoDialogo(canvas, "Obteniendo datos...");
+			return;
 		}
 		pintarTexto(canvas, rectCielo, rect);
-		
+
+		/*
 		pintarFondoTransicion(canvas);
 		pintarEventoAnterior(canvas);
 		pintarEventoSiguiente(canvas);
 		pintarEstadoActual(canvas);
+		*/
+
 		
 		pintarAemet(canvas);
 	}
@@ -213,8 +221,8 @@ public class GraficoActual extends View {
 	private void pintarAemet(Canvas canvas) {
 
 		String texto=""; //	"?" + "�";
-		String codigoAemet=Modelo.get().getSitio(position).getCodigoAemet();
-		if(Config.isVersionPro() && codigoAemet!=null) {			
+		String codigoAemet=Modelo.get().getSitio(indiceSitio).getCodigoAemet();
+		if(codigoAemet!=null) {
 			AemetInfo aemetInfo=Aemet.getCache(codigoAemet);
 			if(aemetInfo!=null) {
 				texto=aemetInfo.getTemperaturaAgua();
@@ -280,11 +288,10 @@ public class GraficoActual extends View {
 					paint.setTextSize(getTextSize() * 3 / 5);
 					paint.setColor(Estilo.COLOR_TEXTO_TEMPERATURA);
 					canvas.drawText(textoVelocidad,x, y, paint);
-
 					}
 				}
 			} else {
-				Log.i("D", "NO hay datos para " + info.hora);
+				Log.i("Aemet", "No hay datos para " + info.hora + " codigo: " +  codigoAemet);
 			}
 			
 		}
@@ -358,24 +365,25 @@ public class GraficoActual extends View {
 		
 		LinearGradient g=new LinearGradient(
 				0, getYMarea(info.getIntMaximo()), 0, getYMarea(info.getIntMinimo()), 
-				Estilo.ROJO, Estilo.VERDE, TileMode.CLAMP);
+				Estilo.FONDO_MAREA_ALTA, Estilo.FONDO_MAREA_BAJA, TileMode.CLAMP);
 		Paint paint=new Paint();
 		paint.setShader(g);
-		canvas.drawRect(0, 0
+		CanvasUtil.drawRect(canvas,0, 0
 					,  getMargenIzquierdo() + 2, 
-					height, paint);
+					height, paint, CanvasUtil.paintBorde());
 		
 	}
-	
+
+
 	private void pintarFondoTransicion(Canvas canvas) {
 		int izquierdo;
 		int derecho;
 		if(info.getIntAlturaAnterior()>info.getIntAlturaSiguiente()) {
-			izquierdo=Estilo.ROJO;
-			derecho=Estilo.VERDE;
+			izquierdo=Estilo.FONDO_MAREA_ALTA;
+			derecho=Estilo.FONDO_MAREA_BAJA;
 		} else {
-			izquierdo=Estilo.VERDE;
-			derecho=Estilo.ROJO;
+			izquierdo=Estilo.FONDO_MAREA_BAJA;
+			derecho=Estilo.FONDO_MAREA_ALTA;
 		}
 		LinearGradient g=new LinearGradient(
 				getMargenIzquierdo(), 0, rectPiscina().right, 0, 
@@ -389,6 +397,8 @@ public class GraficoActual extends View {
 		canvas.drawLine(0, height-getMargenInferior(), rectPiscina().right,
 					height-getMargenInferior(), paintRaya);
 	}
+
+
 	
 	
 	private void pintarLeyendaMaximo(Canvas canvas, 
@@ -547,20 +557,20 @@ public class GraficoActual extends View {
 	void pintarEstadoActual(Canvas canvas) {
 		Paint paint=getPaintEstadoActual();
 		paint.setTextAlign(Align.CENTER);
-		
+		int delta=height+2*getTextSize();
 		
 		Date ahora=new Date();
 		if(DateUtils.isToday(info.hora.getTime())) {
 			canvas.drawText(
 					info.getHora(), 
 						width/2,
-						height-getMargenInferior()+
+						delta-getMargenInferior()+
 						paint.getTextSize(), 
 					paint);
 			canvas.drawText(
 					getContext().getString(info.getEstado()),
 						width/2,
-						height-getMargenInferior()+
+						delta-getMargenInferior()+
 						paint.getTextSize() + paint.getTextSize(), 
 					paint);
 			
@@ -579,15 +589,15 @@ public class GraficoActual extends View {
 			canvas.drawText(
 					texto,
 					width/2,
-					height-getMargenInferior()+paint.getTextSize()*1,paint);			
+					delta-getMargenInferior()+paint.getTextSize()*1,paint);
 			canvas.drawText(
 						info.getHora(),
 						width/2,
-						height-getMargenInferior()+paint.getTextSize()*2,paint);
+						delta-getMargenInferior()+paint.getTextSize()*2,paint);
 			canvas.drawText(
 					getContext().getString(info.getEstado()), 
 						width/2,
-						height-getMargenInferior()+paint.getTextSize()*3,paint);
+						delta-getMargenInferior()+paint.getTextSize()*3,paint);
 						
 		}
 		
@@ -609,8 +619,8 @@ public class GraficoActual extends View {
 	
 	Paint getPaintHoraEventos() {
 		Paint paint=new Paint();
-		int textSize=getTextSize()*2;
-		paint.setTextSize(textSize);
+		int textSize=getTextSize();
+		paint.setTextSize(textSize*6/4);
 		paint.setColor(Estilo.TEXTO_BLANCO);
 		paint.setTypeface(Typeface.DEFAULT_BOLD);
 		paint.setAntiAlias(true);
@@ -620,7 +630,7 @@ public class GraficoActual extends View {
 	Paint getPaintEstadoEventos() {
 		Paint paint=new Paint();
 		int textSize=getTextSize();
-		paint.setTextSize(textSize*5/4);
+		paint.setTextSize(textSize);
 		paint.setColor(Estilo.TEXTO_BLANCO);
 		paint.setTypeface(Typeface.DEFAULT_BOLD);
 		paint.setAntiAlias(true);
@@ -630,26 +640,29 @@ public class GraficoActual extends View {
 	void pintarEventoAnterior(Canvas canvas) {
 		Paint paint=getPaintHoraEventos();
 		Paint paintEstado=getPaintEstadoEventos();
+		int deltaY=0;
 		if(info.estaSubiendo()) {
 			paint.setColor(Estilo.COLOR_TEXTO_HORA_BAJAMAR);
 			paintEstado.setColor(Estilo.COLOR_TEXTO_BAJAMAR);
+			deltaY=height+4*getTextSize();
 		} else {
 			paint.setColor(Estilo.COLOR_TEXTO_HORA_PLEAMAR);
 			paintEstado.setColor(Estilo.COLOR_TEXTO_PLEAMAR);
+			deltaY=height;
 		}
 		
 		int pad=4;
 		
 		canvas.drawText(
 				info.getHoraAnterior(),
-				pad, height-getMargenInferior()+paint.getTextSize(),
+				pad, deltaY-getMargenInferior()+paint.getTextSize(),
 				paint);
 		
 		
 		canvas.drawText(
 				getContext().getString(info.getNombreAnterior()),
 				pad, 
-				height-getMargenInferior()+
+				deltaY-getMargenInferior()+
 					paint.getTextSize()+paintEstado.getTextSize(),
 				paintEstado);
 				
@@ -659,18 +672,21 @@ public class GraficoActual extends View {
 		int pad=4;
 		Paint paint=getPaintHoraEventos();
 		Paint paintEstado=getPaintEstadoEventos();
+		int deltaY;
 		if(info.estaSubiendo()) {
 			paint.setColor(Estilo.COLOR_TEXTO_HORA_PLEAMAR);
 			paintEstado.setColor(Estilo.COLOR_TEXTO_PLEAMAR);
+			deltaY=height;
 		} else {
 			paint.setColor(Estilo.COLOR_TEXTO_HORA_BAJAMAR);
 			paintEstado.setColor(Estilo.COLOR_TEXTO_BAJAMAR);
+			deltaY=height+4*getTextSize();
 		}
 		
 		paint.setTextAlign(Align.RIGHT);
 		canvas.drawText(
 				info.getHoraSiguiente(),
-				this.width-pad, height-getMargenInferior()+paint.getTextSize(),
+				this.width-pad, deltaY-getMargenInferior()+paint.getTextSize(),
 				paint);
 		
 		
@@ -678,7 +694,7 @@ public class GraficoActual extends View {
 		canvas.drawText(
 				getContext().getString(info.getNombreProximo()),
 				this.width-pad, 
-				height-getMargenInferior()+
+				deltaY-getMargenInferior()+
 					paint.getTextSize()+paintEstado.getTextSize(),
 				paintEstado);		
 	}
@@ -737,9 +753,10 @@ public class GraficoActual extends View {
 	
 		Paint paintFondo=new Paint();
 		paintFondo.setColor(Estilo.COLOR_FONDO_INFO);
-		canvas.drawRect(0, 1, getMargenIzquierdo()+2,
-							pad + altoFila * lineas, paintFondo);
-		
+		CanvasUtil.drawRect(canvas, 0, 1, getMargenIzquierdo()+2,
+							pad + altoFila * lineas, paintFondo, CanvasUtil.paintBorde());
+
+
 		int linea=0;
 		int ajuste=altoFila / 5; 
 		pintarImagen(canvas, iconoSol, 0, pad / 2 + ajuste, getTextSize());
@@ -790,8 +807,8 @@ public class GraficoActual extends View {
 //		}
 	}
 
-	public int getPosition() {
-		return position;
+	public int getIndiceSitio() {
+		return indiceSitio;
 	}
 	
 	@Override

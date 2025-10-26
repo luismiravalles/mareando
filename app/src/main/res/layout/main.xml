@@ -1,21 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<LinearLayout
      	     
 	xmlns:android="http://schemas.android.com/apk/res/android"
 
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent"   
-    >
+    android:layout_height="fill_parent"
+    android:orientation="vertical">
     
     <ScrollView android:id="@+id/scrollMapa"
-        	android:layout_alignParentTop="true"
-        	android:layout_alignParentLeft="true"
         	android:layout_width="fill_parent"
-        	android:layout_height="20dp">
+        	android:layout_height="10dp">
         	<RelativeLayout
         	    android:id="@+id/zonaApuntador"
 			    android:layout_width="fill_parent"
-    			android:layout_height="wrap_content"           	    
+    			android:layout_height="wrap_content"
+				android:background="#FF00FF00"
         	    >
 		          <ImageView 
 			        	android:id="@+id/mapa"
@@ -24,7 +23,8 @@
 			        	android:src="@drawable/iberianorte" />		        	    	   
         	</RelativeLayout>        	        	        
     </ScrollView>
-    
+
+	<!--
     <LinearLayout
         	android:orientation="horizontal"
         	android:id="@+id/partefija"
@@ -33,26 +33,16 @@
         	android:layout_width="fill_parent"
         	android:layout_height="wrap_content"
         />
+	-->
 
-    <LinearLayout
-        android:orientation="vertical"        
-        	android:layout_alignParentTop="true"
-        	android:layout_alignParentLeft="true"
-        	android:layout_width="fill_parent"
-        	android:layout_height="fill_parent"
-    	      
-        >
-        
+	<!--   AQUI DENTRO VA EL VIEWER -->
+	<LinearLayout
+		android:id="@+id/raiz"
+		android:orientation="vertical"
+		android:layout_width="match_parent"
+		android:layout_height="0dp"
+		android:layout_weight="1"
 
-	    <!--   AQUI DENTRO VA EL VIEWER -->
-		<LinearLayout
-			android:id="@+id/raiz"
-		    android:orientation="vertical"
-		    android:layout_width="fill_parent"
-		    android:layout_height="wrap_content"
-	    
-			/>
-	
-	</LinearLayout>	        
-</RelativeLayout>    
+		/>
+</LinearLayout>
 

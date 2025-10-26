@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 
 import miravalles.tumareapro.Config;
@@ -31,7 +33,6 @@ public class Sitio {
 	public int			ajusteBajamar;
 	public int			[][]marea=new int[12][MAX];		// A�o y Mes
 	public int			[][]altura=new int[12][MAX];		// A�o y Mes
-	public boolean		cargado;
 	public boolean		deUsuario;
 	public int			unidadAltura;
 	private String		codigoAemet;
@@ -136,46 +137,33 @@ public class Sitio {
 		return nom;
 	}
 
-	public void cargarDatos(final Context contexto, final DatosListener datosListener) {
-		if(cargado) {
-			datosListener.datosCargados(this);
+	public void cargarDatos(final Context contexto, final int ano, final int mes, final Runnable runnable) {
+		if(yaCargado(mes)) {
+			runnable.run();
 			return;
 		}
-		AsyncTask<String, Void, String> tarea=new AsyncTask<String, Void, String>() {
-			@Override
-			protected String doInBackground(String... params) {
-				cargarDatosDosMeses(contexto);
-				return "";
-			}
-			@Override
-			protected void onPostExecute(String result) {
-				datosListener.datosCargados(Sitio.this);
-			}
-		};
-		tarea.execute();
+
+		Executor executor= Executors.newSingleThreadExecutor();
+		executor.execute( () -> {
+			cargarDatosDosMeses(contexto, ano, mes);
+			runnable.run();
+		});
+
 	}
 
-	private void cargarDatosDosMeses(final Context contexto) {
+	private boolean yaCargado(int mes) {
+		return altura[mes][0]!=0;
+	}
+
+	private void cargarDatosDosMeses(final Context contexto, int ano, int mes) {
 		InstitutoMarinaDatosDao dao=new InstitutoMarinaDatosDao(contexto);
-		int mes=Util.thisMonth();
-		dao.obtenerDatosMes(this, mes);
+		dao.obtenerDatosMes(this, ano, mes);
 		mes++;
 		if(mes>=12) {
 			mes=0;
+			ano++;
 		}
-		dao.obtenerDatosMes(this, mes);
-	}
-
-	private void cargarDatosAleatorios() {
-		Random r=new Random();
-		for(int mes=0; mes<12; mes++) {
-			int n=0;
-			for(int dia=0; dia<31; dia++) {
-				marea[mes][dia]=n + 300 + r.nextInt(100);
-				altura[mes][dia]=r.nextInt(500);
-			}
-		}
-		Log.i("X", "Datos Cargados");
+		dao.obtenerDatosMes(this, ano, mes);
 	}
 
 	public int [][]getMarea() {
