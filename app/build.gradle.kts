@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "miravalles.tumareapro"
-    compileSdk = 34
+    compileSdk = 35
 
 
 
@@ -16,9 +16,9 @@ android {
     defaultConfig {
         applicationId = "miravalles.mareame"
         minSdk = 24
-        targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        targetSdk = 35
+        versionCode = 5
+        versionName = "5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

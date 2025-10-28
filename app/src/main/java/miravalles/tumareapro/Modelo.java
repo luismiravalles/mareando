@@ -1,10 +1,6 @@
 package miravalles.tumareapro;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,21 +16,18 @@ import java.util.concurrent.Executors;
 
 import miravalles.tumareapro.data.CoeficientesDao;
 import miravalles.tumareapro.domain.DatosListener;
-import miravalles.tumareapro.domain.England;
 import miravalles.tumareapro.domain.Foto;
 import miravalles.tumareapro.domain.Sitio;
 import miravalles.tumareapro.domain.Spain;
 import miravalles.tumareapro.vo.GeoLocalizacion;
-import miravalles.tumareapro.R;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.widget.Toast;
 
 public class Modelo {
 	
@@ -49,6 +42,8 @@ public class Modelo {
 	private Sitio []sitios=null;
 	
 	private int [][]coeficientes;
+	// Para saber si los tengo que recargar...
+	private int anoCoeficientes;
 			
 
 	
@@ -62,13 +57,7 @@ public class Modelo {
 			
 	
 	public Modelo(TuMareaActivity contexto) {
-		
-		if(Config.isEngland()) {
-			sitios=new England().getSitios();
-		} else {
-			sitios=new Spain().getSitios(contexto);
-		}		
-				
+		sitios=new Spain().getSitios(contexto);
 		this.contexto=contexto;
 		
 		cargarSitiosDeUsuario(contexto);
@@ -287,7 +276,7 @@ public class Modelo {
 			// Ahora a por la siguiente
 			mes++;
 			if(mes>11) {
-				mes=11;
+				mes=0;
 			}
 			GregorianCalendar gcSiguiente=utcCalendar(mes,1);
 			gcSiguiente.add(gc.MINUTE, marea[mes][0]);
@@ -570,15 +559,16 @@ public class Modelo {
 		sitios=nuevaMatriz;
 	}
 	
-	public void cargarCoeficientes(Context contexto, DatosListener listener)  {
-		if(coeficientes!=null) {
+	public void cargarCoeficientes(Context contexto, int ano, DatosListener listener)  {
+		if(coeficientes!=null && anoCoeficientes==ano) {
 			listener.datosCargados();
 			return;
 		}
 		Executor executor= Executors.newSingleThreadExecutor();
 		executor.execute(() -> {
 			CoeficientesDao coeficientesDao=new  CoeficientesDao(contexto);
-			coeficientes=coeficientesDao.cargarCoeficientes(Util.thisYear());
+			coeficientes=coeficientesDao.cargarCoeficientes(ano);
+			anoCoeficientes=ano;
 			new Handler(Looper.getMainLooper()).post(() ->{
 				listener.datosCargados();
 			});

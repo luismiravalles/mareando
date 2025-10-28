@@ -38,7 +38,6 @@ public class Mapa {
 			new Mapa(drawable.iberianorte , Y_IBERIANORTE, Y_IBERIANORTE+RANGO_Y, -9.51, -1.26, 7 ),
 			new Mapa(drawable.iberiasur, 	Y_IBERIASUR, Y_IBERIASUR+(RANGO_Y*1.468), -9.1, -1.05, 0),
 			new Mapa(drawable.canarias, Y_CANARIAS, Y_CANARIAS+RANGO_Y, -18.94, -10.66, 0),
-			new Mapa(drawable.england, Y_ENGLAND, Y_ENGLAND_TOP, X_ENGLAND, X_ENGLAND_RIGHT, 0)
 	};
 	
 	public Mapa(int imagen, double minLatitud, double maxLatitud, double minLongitud, double maxLongitud, int yTexto) {

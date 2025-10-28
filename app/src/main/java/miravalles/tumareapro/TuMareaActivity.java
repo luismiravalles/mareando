@@ -35,6 +35,7 @@ import android.provider.MediaStore;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.view.WindowCompat;
 
 import android.util.Log;
 import android.view.ContextMenu;
@@ -120,9 +121,12 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
     	modelo=Modelo.crearModelo(this);
     	
     	initDimensiones();
-    	
+
     	Sizer sizer=new Sizer();
         super.onCreate(savedInstanceState);
+
+		// Según ChatGpt esto evita que machaquemos la barra de estado de arriba.
+		WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
         setContentView(R.layout.main);
         
         scrollMapa=(ScrollView)findViewById(R.id.scrollMapa);
@@ -186,10 +190,12 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
         lpApuntador.setMargins(20,0,0,0);
         apuntador.setLayoutParams(lpApuntador);
         zonaApuntador.addView(apuntador);
-        if(!restaurarPosicion())  {
-        	elegirSitio();
-        }
-        sitioCambiado(getIndiceSitio());
+		new Handler(Looper.getMainLooper()).post(() -> {
+        	if(!restaurarPosicion())  {
+	        	elegirSitio();
+	        }
+    	    sitioCambiado(getIndiceSitio());
+		});
     }
 
 	private void verificarZonaHoraria() {
@@ -258,8 +264,10 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
     	int pos=pref.getInt("posicion", -1);
     	boolean mostrarElegirSitio=false;
     	if(pos<0 || pos>=Modelo.get().getNumSitios()) {
-    		mostrarElegirSitio=true;
-    	} else {
+			// mostrarElegirSitio=true;
+			pos = modelo.buscarSitioPorNombre("Cudillero");
+		}
+    	if(pos>=0) {
 			mareaVisor.setIndiceSitio(pos);
 		}
     	return (!mostrarElegirSitio);

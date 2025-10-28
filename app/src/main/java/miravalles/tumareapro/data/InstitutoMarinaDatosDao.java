@@ -7,14 +7,11 @@ import android.util.Log;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xmlpull.v1.XmlPullParser;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -24,13 +21,11 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import miravalles.tumareapro.Util;
-import miravalles.tumareapro.domain.AemetInfo;
 import miravalles.tumareapro.domain.Sitio;
 
 /**
  * Clase que se encarga de descargar y persistir localmente la información de las
  * mareas.
- *
  * La información de un mes y una estación(sitio) se representa en un fichero que
  * puede estar persistido previamente y si no lo está se lo pediremos al Instituto
  * Hidrográfico.

@@ -73,7 +73,6 @@ public class MareaVisor  implements AemetListener {
 		viewRaiz.setOrientation(LinearLayout.VERTICAL);
 
 		sizer.set(viewRaiz).fillWidth().fillHeight();
-		viewRaiz.setBackgroundColor(Color.CYAN);
 
 		viewRaiz.addView(crearZonaInfoSuperior(context));
 		viewRaiz.addView(crearZonaInfo(context));
@@ -105,7 +104,7 @@ public class MareaVisor  implements AemetListener {
 		MareaInfo info=modelo.getMareaInfo(indiceSitio, contexto.getFechaVista());
 		Sitio sitio=modelo.getSitio(indiceSitio);
 		sitio.cargarDatos(viewRaiz.getContext(), ano, mes, this::actualizarEnUiThread);
-		modelo.cargarCoeficientes(viewRaiz.getContext(), this::actualizarEnUiThread);
+		modelo.cargarCoeficientes(viewRaiz.getContext(), ano, this::actualizarEnUiThread);
 		AemetInfo aemetInfo=Aemet.getCache(sitio.getCodigoAemet());
 		if(aemetInfo==null) {
 			Aemet.cargar(this.contexto, sitio.getCodigoAemet(), this);
@@ -190,7 +189,7 @@ public class MareaVisor  implements AemetListener {
 	private View crearZonaInferior(Context context) {
 		LinearLayout zona=new LinearLayout(context);
 		zona.setBackgroundColor(Estilo.COLOR_FONDO_INFO);
-		sizer.set(zona).fillWidth().weightY(1);
+		sizer.set(zona).fillWidth().weightY(0.5f);
 		return zona;
 	}
 
