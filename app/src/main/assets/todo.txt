@@ -1,6 +1,21 @@
 PRIORITARIOS
 [X] Mostrar Disclaimer la primera vez ...
 [X] Explicar que los sitios vienen del Instituto Hidrográfico de la Marina
+[X] Error al principio de cada més.
+[X] Al moverme con dedo entre meses aun no cargados falla.
+[ ] Si voy al 1 de Febrero y me pongo en las 01h muevo dedo para atrás falla porque carga
+    solamente el mes de Febrero y Marzo pero no cargó Enero.
+[ ] Tengo que impedir mover la hora hacia atrás si nos vamos al pasado porque podríamos
+    solapar datos de años...
+[ ] Si entro a la app el 01-Nov me carga Noviembre+Diciembre pero si son las 5 de la mañana
+    y tengo que mostrar la marea anterior pues no va a funcionar porque no la tiene o incluso
+    si la tuviera sería ya del año siguiente poraquello de tener la matriz tipo "Rolling". Lo mismo
+    pasa si me situo el 1 de un mes aun no cargado a las 1h de la mañana que no tiene evento
+    anterior.
+[ ] Impedir que la app se pueda girar.
+
+
+
 
 
 SECUNDARIOS
@@ -26,3 +41,5 @@ SECUNDARIOS
 [ ] Mostrar el evento actual en la posición X, Y acorde a la onda...
 [ ] Probar a Añadir botones abajo para Sitio, Fecha y Tabla.
 [ ] Mostrar evento siguiente al siguiente. O sea 3 eventos... El anterior y 2 siguientes...??
+[ ] Botón para ir a Aemet según sugirió Jonhatan.
+[ ] Botón para ver en google maps las coordenadas de la estación.

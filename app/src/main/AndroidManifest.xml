@@ -20,6 +20,7 @@
         <activity
             android:name=".TuMareaActivity"
             android:exported="true"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.MareaMe">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -27,7 +28,10 @@
             </intent-filter>
         </activity>
         
-        <activity android:name="miravalles.tumareapro.TablaMareas" />
+        <activity
+            android:name="miravalles.tumareapro.TablaMareas"
+            android:screenOrientation="portrait"
+            />
         <activity android:name="miravalles.tumareapro.AvisoActivity" />
     </application>
     

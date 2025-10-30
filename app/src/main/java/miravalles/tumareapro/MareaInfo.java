@@ -42,6 +42,12 @@ public class MareaInfo {
 		this.ocaso=SunriseSunsetCalculator.getSunset(geo.y(), geo.x(), 
 				TimeZone.getDefault(), cal, 0.0);
 	}
+
+	public int getMes() {
+		Calendar cal=Calendar.getInstance();
+		cal.setTime(hora);
+		return cal.get(Calendar.MONTH);
+	}
 	
 	public int getNombreProximo() {
 		if(alturaSiguiente>alturaAnterior) {
@@ -151,6 +157,15 @@ public class MareaInfo {
 
 		double incr = (((double)alturaSiguiente - (double)alturaAnterior)/2)
 							*(1-Math.cos(ratio*Math.PI));
+
+		/*
+		Log.d("M", "Calculando Altura actual "
+								+ " Sig = " + siguiente
+								+ " Ant = " + anterior
+								+ " act = " + hora.getTime()
+								+ " Ratio = " + ratio
+								+ " Inc = " + incr);
+		*/
 		return alturaAnterior + (int)incr;
 	}
 	
@@ -212,6 +227,15 @@ public class MareaInfo {
 			return 0;
 		}
 		
+	}
+
+	/**
+	 * Retorna cierto si esta instancia realmente contiene datos.
+	 * No continene datos si las alturas anterior y siguiente son cero.
+	 * @return
+	 */
+	public boolean hayDatos() {
+		 return this.alturaAnterior!=0 && this.alturaSiguiente!=0;
 	}
 	
 }

@@ -101,7 +101,6 @@ public class MareaVisor  implements AemetListener {
 		int mes=gc.get(Calendar.MONTH);
 		int ano=gc.get(Calendar.YEAR);
 
-		MareaInfo info=modelo.getMareaInfo(indiceSitio, contexto.getFechaVista());
 		Sitio sitio=modelo.getSitio(indiceSitio);
 		sitio.cargarDatos(viewRaiz.getContext(), ano, mes, this::actualizarEnUiThread);
 		modelo.cargarCoeficientes(viewRaiz.getContext(), ano, this::actualizarEnUiThread);
@@ -252,11 +251,15 @@ public class MareaVisor  implements AemetListener {
     	GraficoActual grafico=(GraficoActual)zonaInfo.findViewWithTag("grafico");
     	if(grafico!=null) {
     		MareaInfo info=modelo.getMareaInfo(indiceSitio, contexto.getFechaVista());
-    		grafico.setInfo(info, indiceSitio);
-    		grafico.invalidate();
+			if(!info.hayDatos()) {
+				cargarDatos();
+			} else {
+				grafico.setInfo(info, indiceSitio);
+				grafico.invalidate();
 
-			eventosView.setInfo(info);
-			eventosView.invalidate();
+				eventosView.setInfo(info);
+				eventosView.invalidate();
+			}
     	}
     }
 

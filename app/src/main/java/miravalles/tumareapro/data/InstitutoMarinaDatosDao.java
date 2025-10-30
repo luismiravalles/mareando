@@ -1,9 +1,11 @@
 package miravalles.tumareapro.data;
 
+
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.util.Log;
+import android.widget.Toast;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -48,7 +50,7 @@ public class InstitutoMarinaDatosDao implements DatosDao {
             cargarDatosLocales(sitio, ano, mes);
             return;
         }
-        descargarDatosRemotos(sitio, ano, mes);
+        sitio.setErrorInstitutoMarina(mes, descargarDatosRemotos(sitio, ano, mes));
         cargarDatosLocales(sitio, ano, mes);
     }
 
@@ -126,7 +128,7 @@ public class InstitutoMarinaDatosDao implements DatosDao {
         return fichero.exists() && fichero.length()>0;
     }
 
-    private void descargarDatosRemotos(Sitio sitio, int ano, int mes) {
+    private String descargarDatosRemotos(Sitio sitio, int ano, int mes) {
         Log.i("INTERNET", "Descargando datos remotos de " + sitio.nombre + " mes " + mes);
         ConnectivityManager check = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo[] netInfo=check.getAllNetworkInfo();
@@ -139,7 +141,7 @@ public class InstitutoMarinaDatosDao implements DatosDao {
             }
         }
         if(conectado==false) {
-            return;
+            return "Problemas de conexión de red. No hay red.";
         }
         Log.i("X", "Verificada");
         try {
@@ -160,7 +162,11 @@ public class InstitutoMarinaDatosDao implements DatosDao {
             }
         } catch(Exception e) {
             Log.e("X", e.getMessage());
+            return "No se pudo conectar con Instituto Hidrográfico de la Marina " +
+                    " para obtener los datos de " + sitio.nombre + " " + ano + "-" + (mes+1);
+
         }
+        return null;
     }
 
 

@@ -115,22 +115,49 @@ public class Modelo {
 		return fotos.get(cercano);
 	}
 
+	/**
+	 * Retorna el indice más alto de la matriz que esté cargado con algún valor.
+	 * @param array La matriz
+	 * @return El valor
+	 */
+	private int ultimoDato(int array[]) {
+		for(int i=array.length-1; i>=0; i--) {
+			if(array[i]!=0) {
+				return i;
+			}
+		}
+		return 0;
+	}
+
+	private int mesAnterior(int mes) {
+		return mes==0?11:mes-1;
+	}
+
 	private void getAnterior(
 			int [][]marea, int [][]altura,	Sitio sitio,  int mes, int i, MareaInfo info) {
 		int iAnt=i-1;
 		int mesAnt=mes;
 		if(iAnt<0) {
-			mesAnt--;
-			if(mesAnt<0) {
-				mesAnt=0;
-			}
-			iAnt=marea[mesAnt].length-1;
+			mesAnt=mesAnterior(mesAnt);
+			iAnt=ultimoDato(marea[mesAnt]);
 		}
-		GregorianCalendar gc=utcCalendar(mesAnt, 1);
+		GregorianCalendar gc=utcCalendar(anoDelMes(mesAnt), mesAnt, 1);
 		boolean esPleamar=esPleamar(altura[mesAnt], iAnt);
 		gc.add(gc.MINUTE, getEventoAjustado(marea[mesAnt][iAnt], esPleamar, sitio));
 		info.anterior=gc.getTime();
 		info.alturaAnterior=altura[mesAnt][iAnt];
+	}
+
+	/**
+	 * En las matrices de marea y alturas tengo cargados de cada mes siendo
+	 * del año siguiente en el caso de que el mes sea menor al actual
+	 */
+	public int anoDelMes(int mes) {
+		if(mes < Util.thisMonth()) {
+			return Util.thisYear()+1;
+		} else {
+			return Util.thisYear();
+		}
 	}
 	
 	private int [][]getMarea(int sitio) {
@@ -248,12 +275,12 @@ public class Modelo {
 			//		+ sitios[sitio].nombre);
 		}
 
-		int minmes = (dia * 1440) + (hora * 60) + min;
+		int minutoMes = (dia * 1440) + (hora * 60) + min;
 		for (int i = 0; i < marea[mes].length; i++) {
 			boolean esPleamar=esPleamar(altura[mes], i);
-			if (minmes < getEventoAjustado(marea[mes][i], esPleamar, sitios[sitio])) {
+			if (minutoMes < getEventoAjustado(marea[mes][i], esPleamar, sitios[sitio])) {
 				result.add(result.MINUTE, 
-						getEventoAjustado(marea[mes][i], esPleamar, sitios[sitio]) - minmes);
+						getEventoAjustado(marea[mes][i], esPleamar, sitios[sitio]) - minutoMes);
 				altProx = altura[mes][i];
 				info.siguiente=result.getTime();
 				info.alturaSiguiente=altura[mes][i] ;
@@ -266,8 +293,8 @@ public class Modelo {
 		}
 		boolean esPleamarUltimoDia=esPleamar(altura[mes], altura[mes].length-1);
 		int eventoUltimoDia=marea[mes][marea[mes].length - 1];
-		if (minmes >= getEventoAjustado(eventoUltimoDia, esPleamarUltimoDia, sitios[sitio])) {
-			GregorianCalendar gcAnterior=utcCalendar( mes, 1);
+		if (minutoMes >= getEventoAjustado(eventoUltimoDia, esPleamarUltimoDia, sitios[sitio])) {
+			GregorianCalendar gcAnterior=utcCalendar(anoDelMes(mes), mes, 1);
 			int ultimoI=ultimo(marea,  mes);
 			int minutos=marea[mes][ultimoI];
 			gcAnterior.add(gc.MINUTE, minutos);
@@ -278,7 +305,7 @@ public class Modelo {
 			if(mes>11) {
 				mes=0;
 			}
-			GregorianCalendar gcSiguiente=utcCalendar(mes,1);
+			GregorianCalendar gcSiguiente=utcCalendar(anoDelMes(mes),mes,1);
 			gcSiguiente.add(gc.MINUTE, marea[mes][0]);
 			info.siguiente=gcSiguiente.getTime();
 			info.alturaSiguiente=altura[mes][0];
@@ -345,9 +372,8 @@ public class Modelo {
 		return utc;
 	}
 	
-	public GregorianCalendar utcCalendar(int mes , int dia) {
-		int anoActual=new Date().getYear()+1900;
-		GregorianCalendar cal=new GregorianCalendar(anoActual, mes, dia);
+	public GregorianCalendar utcCalendar(int ano, int mes , int dia) {
+		GregorianCalendar cal=new GregorianCalendar(ano, mes, dia);
 		cal.setTimeZone(utc);
 		return cal;
 	}
