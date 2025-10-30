@@ -30,6 +30,8 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
+import com.google.android.material.snackbar.Snackbar;
+
 public class GraficoActual extends View {
 	
 	private static Bitmap barquito=null;
@@ -202,7 +204,14 @@ public class GraficoActual extends View {
 
 			pintarIconoEstado(canvas, info);
 		} else {
-			pintarTextoDialogo(canvas, "Obteniendo datos...");
+			String texto="Obteniendo datos";
+			String textoError=Modelo.get().getSitio(indiceSitio).getErrorInstitutoMarina(
+					info.getMes());
+			if(textoError!=null) {
+				texto=textoError;
+			}
+			Snackbar.make(this, texto, Snackbar.LENGTH_SHORT).show();
+			// pintarTextoDialogo(canvas, texto);
 			return;
 		}
 		pintarTexto(canvas, rectCielo, rect);

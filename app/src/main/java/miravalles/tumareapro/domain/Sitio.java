@@ -33,6 +33,10 @@ public class Sitio {
 	public int			ajusteBajamar;
 	public int			[][]marea=new int[12][MAX];		// A�o y Mes
 	public int			[][]altura=new int[12][MAX];		// A�o y Mes
+
+	private String		errorInstitutoMarina[]=new String [12];
+
+
 	public boolean		deUsuario;
 	public int			unidadAltura;
 	private String		codigoAemet;
@@ -227,4 +231,11 @@ public class Sitio {
 		return this;
 	}
 
+    public String getErrorInstitutoMarina(int mes) {
+        return errorInstitutoMarina[mes];
+    }
+
+    public void setErrorInstitutoMarina(int mes, String errorInstitutoMarina) {
+        this.errorInstitutoMarina[mes] = errorInstitutoMarina;
+    }
 }
