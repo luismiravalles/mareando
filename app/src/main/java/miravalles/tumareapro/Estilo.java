@@ -5,7 +5,7 @@ public class Estilo {
 	public static final int TEXT_SIZE_SITIO=6;
 	final static int FONDO_MAREA_ALTA =0xFF111122;
 	final static int FONDO_MAREA_BAJA =0xFF222233;
-	public static final int COLOR_ACTUAL=0xFFFFFFAA;
+	public static final int COLOR_ACTUAL=0xFFFFFFDD;
 	public static final int TEXTO_BLANCO = 0xFFFFFFFF;
 	public static final int COLOR_LINEA = 0xFFA0A0A0;
 

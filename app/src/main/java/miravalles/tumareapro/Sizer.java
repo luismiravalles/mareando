@@ -39,6 +39,11 @@ public class Sizer {
 		v.getLayoutParams().height=peso;
 		return this;
 	}
+
+	public Sizer setHeightDp(int dp) {
+		v.getLayoutParams().height=dp;
+		return this;
+	}
 	
 	
 	
@@ -83,6 +88,8 @@ public class Sizer {
 		v.getLayoutParams().height=0;
 		return this;
 	}
+
+
 
 
 }

@@ -43,6 +43,8 @@ public class EventosView extends View {
 
 	private Paint paintOnda;
 
+	MareaInfo infoSiguiente;
+
 
 	public float getAltura() {
 		return 0;
@@ -50,6 +52,12 @@ public class EventosView extends View {
 
 	public void setInfo(MareaInfo info) {
 		this.info=info;
+		infoSiguiente=null;
+		if(info!=null && info.siguiente!=null) {
+			Date momentoSiguiente=new Date(info.siguiente.getTime() + 1);
+			infoSiguiente=Modelo.get().getMareaInfo(
+					info.getSitio(), momentoSiguiente);
+		}
 	}
 
 	@Override
@@ -71,7 +79,7 @@ public class EventosView extends View {
 	
 
 	public int getTextSize() {
-		return height / 6;
+		return height / 8;
 	}
 	
 	public int getMargenIzquierdo() {
@@ -80,18 +88,27 @@ public class EventosView extends View {
 		return margenTexto;
 	}
 
-
-
 	@Override
 	protected void onDraw(Canvas canvas) {
-
 		if(info==null) {
 			return; // Aun no tenemos datos...
 		}
 		pintarFondoTransicion(canvas);
 		pintarOnda(canvas,info.getIntAlturaAnterior()-info.getIntAlturaSiguiente());
+
+
+		pintarEvento(canvas, info.getHoraAnterior(), info.getNombreAnterior(), -1 );
+		pintarEvento(canvas, info.getHoraSiguiente(), info.getNombreProximo(), 0);
+
+		if(infoSiguiente!=null) {
+			pintarEvento(canvas, infoSiguiente.getHoraSiguiente(),
+							 infoSiguiente.getNombreProximo(), 1);
+		}
+		/*
 		pintarEventoAnterior(canvas);
 		pintarEventoSiguiente(canvas);
+		*/
+
 		pintarEstadoActual(canvas);
 	}
 	
@@ -122,27 +139,26 @@ public class EventosView extends View {
 	
 	void pintarEstadoActual(Canvas canvas) {
 		Paint paint=getPaintEstadoActual();
-		paint.setTextAlign(Align.CENTER);
+
 		float delta=(getHeight() - paint.getTextSize()*2)/2;
+		int posx=width/4;
 		
 		Date ahora=new Date();
 		if(DateUtils.isToday(info.hora.getTime())) {
 			canvas.drawText(
 					info.getHora(), 
-						width/2,
+						posx,
 						delta+paint.getTextSize(),
 					paint);
 			canvas.drawText(
 					getContext().getString(info.getEstado()),
-						width/2,
+						posx,
 						 delta + 2 *  paint.getTextSize(),
 					paint);
 			
 		} else {
 			// ES OTRO DIA VAMOS A PINTAR EL DIA Y LA HORA
-			paint=getPaintEstadoActual();
-			paint.setTextAlign(Align.CENTER);
-			paint.setTextSize(paint.getTextSize() * 3 / 4);
+			//paint.setTextSize(paint.getTextSize() * 3 / 4);
 			
 			String texto=null;
 			if(Util.isManana(info.hora)) {
@@ -152,116 +168,100 @@ public class EventosView extends View {
 			}
 			canvas.drawText(
 					texto,
-					width/2,
+					posx,
 					delta+paint.getTextSize()*1,paint);
 			canvas.drawText(
 						info.getHora(),
-						width/2,
+						posx,
 						delta+paint.getTextSize()*2,paint);
 			canvas.drawText(
 					getContext().getString(info.getEstado()), 
-						width/2,
+						posx,
 						delta+paint.getTextSize()*3,paint);
 						
 		}
 	}
 
-
-	Paint getPaintEstadoActual() {
+	Paint paintBasico() {
 		Paint paint=new Paint();
-		int textSize=getTextSize()*3/2;
-		paint.setTextSize(textSize);
-		paint.setColor(Estilo.COLOR_ACTUAL);
 		paint.setTypeface(Typeface.DEFAULT_BOLD);
 		paint.setAntiAlias(true);
 		return paint;
 	}
-	
-	
+
+	Paint getPaintEstadoActual() {
+		Paint paint=paintBasico();
+		paint.setTextSize(getTextSize());
+		paint.setTextAlign(Align.CENTER);
+		paint.setColor(Estilo.COLOR_ACTUAL);
+		return paint;
+	}
+
 	Paint getPaintHoraEventos() {
-		Paint paint=new Paint();
-		int textSize=getTextSize();
-		paint.setTextSize(textSize*6/4);
+		Paint paint=paintBasico();
+		paint.setTextSize(getTextSize()*6/4);
 		paint.setColor(Estilo.TEXTO_BLANCO);
-		paint.setTypeface(Typeface.DEFAULT_BOLD);
-		paint.setAntiAlias(true);
 		return paint;
 	}
 	
 	Paint getPaintEstadoEventos() {
-		Paint paint=new Paint();
+		Paint paint=paintBasico();
 		int textSize=getTextSize();
 		paint.setTextSize(textSize);
 		paint.setColor(Estilo.TEXTO_BLANCO);
-		paint.setTypeface(Typeface.DEFAULT_BOLD);
-		paint.setAntiAlias(true);
 		return paint;
 	}
-	
-	void pintarEventoAnterior(Canvas canvas) {
-		Paint paint=getPaintHoraEventos();
-		Paint paintEstado=getPaintEstadoEventos();
-		float delta=0;
-		if(info.estaSubiendo()) {
-			paint.setColor(Estilo.COLOR_TEXTO_HORA_BAJAMAR);
-			paintEstado.setColor(Estilo.COLOR_TEXTO_BAJAMAR);
-			delta=paint.getTextSize()*2;
-		} else {
-			paint.setColor(Estilo.COLOR_TEXTO_HORA_PLEAMAR);
-			paintEstado.setColor(Estilo.COLOR_TEXTO_PLEAMAR);
-		}
-		
-		int pad=4;
-		
-		canvas.drawText(
-				info.getHoraAnterior(),
-				pad, delta+paint.getTextSize(),
-				paint);
-		
-		
-		canvas.drawText(
-				getContext().getString(info.getNombreAnterior()),
-				pad, 
 
-					delta+paint.getTextSize()+paintEstado.getTextSize(),
-				paintEstado);
-				
-	}
-	
-	void pintarEventoSiguiente(Canvas canvas) {
-		int pad=4;
+	void pintarEvento(Canvas canvas, String hora, int nombreMarea, int zonaX) {
 		Paint paint=getPaintHoraEventos();
 		Paint paintEstado=getPaintEstadoEventos();
 		float delta=0;
-		if(info.estaSubiendo()) {
-			paint.setColor(Estilo.COLOR_TEXTO_HORA_PLEAMAR);
-			paintEstado.setColor(Estilo.COLOR_TEXTO_PLEAMAR);
+		int posx;
+
+		if(zonaX<0) {
+			// Zona Izquierda
+			paintEstado.setTextAlign(Align.LEFT);
+			paint.setTextAlign(Align.LEFT);
+			posx=4;
+		} else if(zonaX==0) {
+			// Zona Centro
+			paintEstado.setTextAlign(Align.CENTER);
+			paint.setTextAlign(Align.CENTER);
+			posx=width/2;
 		} else {
+			// Zona Centro
+			paintEstado.setTextAlign(Align.RIGHT);
+			paint.setTextAlign(Align.RIGHT);
+			posx=width-4;
+		}
+
+		if(nombreMarea==R.string.bajamar) {
 			paint.setColor(Estilo.COLOR_TEXTO_HORA_BAJAMAR);
 			paintEstado.setColor(Estilo.COLOR_TEXTO_BAJAMAR);
-			delta=paint.getTextSize()*2;
+			delta=height-paint.getTextSize()*2;
+		} else {
+			paint.setColor(Estilo.COLOR_TEXTO_HORA_PLEAMAR);
+			paintEstado.setColor(Estilo.COLOR_TEXTO_PLEAMAR);
+			delta=0;
 		}
-		
-		paint.setTextAlign(Align.RIGHT);
 		canvas.drawText(
-				info.getHoraSiguiente(),
-				this.width-pad, delta+paint.getTextSize(),
+				hora,
+				posx, delta+paint.getTextSize(),
 				paint);
-		
-		
-		paintEstado.setTextAlign(Align.RIGHT);
+
 		canvas.drawText(
-				getContext().getString(info.getNombreProximo()),
-				this.width-pad, 
+				getContext().getString(nombreMarea),
+				posx,
 				delta+paint.getTextSize()+paintEstado.getTextSize(),
-				paintEstado);		
-	}
+				paintEstado);
 
-	private SimpleDateFormat sdfHoraMinuto=new SimpleDateFormat("HH:mm");
+	}
+	
 
 	private void pintarOnda(Canvas canvas, int fase) {
-		float w = getWidth()/2;
-		float xIni = getWidth()/4;
+
+		float xIni = getWidth()/8;
+		float w = getWidth() - (2*xIni);
 
 		float yIni=getPaintHoraEventos().getTextSize();
 		float h = getHeight() - 2 * yIni;
@@ -271,12 +271,12 @@ public class EventosView extends View {
 
 		int steps = 100; // número de puntos para dibujar (más = más suave)
 
-
+		final double RANGO= Math.PI * 2;
 
 		Path path = new Path();
 		for (int i = 0; i <= steps; i++) {
 			float x = xIni + (w * i / (float) steps);
-			float angle = (float) ((Math.PI * i) / steps) + desplazamiento; // medio ciclo
+			float angle = (float) ((RANGO * i) / steps) + desplazamiento; // medio ciclo
 			float y = yIni + centerY - amplitude * (float) Math.sin(angle); // resta para que y crezca hacia abajo
 			if (i == 0) {
 				path.moveTo(x, y);

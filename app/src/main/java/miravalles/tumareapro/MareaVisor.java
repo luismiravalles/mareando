@@ -27,7 +27,10 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.LinearLayout;
+
+import com.google.android.material.button.MaterialButton;
 
 /**
  * Visor de Marea. Antes era un Paginador, ahora en vez de Páginas
@@ -189,6 +192,7 @@ public class MareaVisor  implements AemetListener {
 		LinearLayout zona=new LinearLayout(context);
 		zona.setBackgroundColor(Estilo.COLOR_FONDO_INFO);
 		sizer.set(zona).fillWidth().weightY(0.5f);
+
 		return zona;
 	}
 

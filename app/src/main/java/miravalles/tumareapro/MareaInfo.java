@@ -13,7 +13,7 @@ import android.util.Log;
 
 import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 
-public class MareaInfo {	
+public class MareaInfo {
 	private static final double CON_PIES_A_METROS = 3.2808;
 	public	Date siguiente;	// Si son nulos es que no hay datos para esta fecha
 	public  Date anterior;
@@ -21,9 +21,11 @@ public class MareaInfo {
 	public  int  alturaAnterior;
 	public 	Date hora;
 	public  int  coeficiente;
-	
 	public Calendar orto;
 	public Calendar ocaso;
+
+
+	int sitio;
 	
 	
 
@@ -55,7 +57,6 @@ public class MareaInfo {
 		} else {
 			return R.string.bajamar;
 		}
-		
 	}
 	
 	public int getNombreAnterior() {
@@ -237,5 +238,13 @@ public class MareaInfo {
 	public boolean hayDatos() {
 		 return this.alturaAnterior!=0 && this.alturaSiguiente!=0;
 	}
-	
+
+	public int getSitio() {
+		return sitio;
+	}
+
+	public void setSitio(int sitio) {
+		this.sitio = sitio;
+	}
+
 }

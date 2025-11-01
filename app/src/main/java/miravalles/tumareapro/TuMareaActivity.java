@@ -1,6 +1,7 @@
 package miravalles.tumareapro;
 
 import java.io.File;
+import java.nio.CharBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -13,6 +14,7 @@ import miravalles.BitmapUtil;
 import miravalles.tumareapro.domain.Foto;
 import miravalles.tumareapro.vo.GeoLocalizacion;
 
+import android.app.ComponentCaller;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -33,6 +35,12 @@ import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContract;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.view.WindowCompat;
@@ -93,9 +101,29 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 	
 	private int anchoScreenMapa;    	
 
+	private CabeceraSitioFecha cabSitioFecha;
 	
 	private boolean respetarTouchEvent;
 	private boolean mostrarAemet;
+
+	public static int REQUEST_MAP=1001;
+
+
+	ActivityResultLauncher<Intent> mapaLauncher=registerForActivityResult(
+			new ActivityResultContracts.StartActivityForResult(),
+			result -> {
+				if(result.getResultCode()==RESULT_OK) {
+					Intent data=result.getData();
+					int indice=data.getIntExtra("indiceSitio", -1);
+					if(indice>=0) {
+						mareaVisor.setIndiceSitio(indice);
+						sitioCambiado(indice);
+						guardarPosicion();
+					}
+				}
+			}
+	);
+
 	
 
     public boolean isMostrarAemet() {
@@ -196,7 +224,21 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 	        }
     	    sitioCambiado(getIndiceSitio());
 		});
+
+		// CABECERA
+		prepararCabecera();
+
     }
+
+	private void prepararCabecera() {
+		cabSitioFecha=new CabeceraSitioFecha();
+		ActionBar ab=getSupportActionBar();
+		ab.setDisplayShowTitleEnabled(false);
+		ab.setDisplayShowCustomEnabled(true);
+		ab.setCustomView(cabSitioFecha.crear(this,
+				this::elegirSitio, this::elegirFecha));
+	}
+
 
 	private void verificarZonaHoraria() {
 		TimeZone tz=TimeZone.getDefault();
@@ -347,16 +389,21 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
     	
     	Log.i("S", "Scroll: " + yScroll);
 	}
-    
+
+
+
     public void mostrarPosicionYFecha(int pagina) {
     	//getActionBar().setIcon(0);
     	getSupportActionBar().setDisplayShowHomeEnabled(false);
+		cabSitioFecha.setSitio(Modelo.get().getNombreSitio(pagina));
+		cabSitioFecha.setFecha(getFechaVista());
+		/*
     	getSupportActionBar().setTitle(
     			Modelo.get().getNombreSitio(pagina) 
     			+ " - " + fechaFormatoTitulo.format(
 						  getFechaVista()))
     			;
-    	
+    	*/
     }
        
     
@@ -517,9 +564,17 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 			Util.mostrarAviso(TuMareaActivity.this, "acercaDeMareando" );
 			return true;
 		}
+
+		if(item.getItemId()==R.id.mapasitios) {
+			Intent intent = new Intent(this, MapaSitiosActivity.class);
+			intent.putExtra("indiceSitio", getIndiceSitio());
+			mapaLauncher.launch(intent);
+		}
+
 		return super.onContextItemSelected(item);
 
 	}
+
 	
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
@@ -566,10 +621,9 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 	public void setRespetarTouchEvent(boolean respetarTouchEvent) {
 		this.respetarTouchEvent=respetarTouchEvent;
 	}
-	
 
-	
-    public void elegirSitio() {
+
+	public void elegirSitio() {
 		new ElegirSitio(this,
     			Modelo.get().getSitio(getIndiceSitio()),
 				sitioSeleccionado  -> {

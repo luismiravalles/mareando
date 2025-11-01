@@ -248,6 +248,7 @@ public class Modelo {
 	
 	public MareaInfo getMareaInfo(int sitio, Date momento) {
 		MareaInfo info=new MareaInfo(momento, sitios[sitio].getGeo());
+		info.setSitio(sitio);
 
 		GregorianCalendar gc = utcCalendar();
 		gc.setTime(momento);
@@ -316,7 +317,8 @@ public class Modelo {
 		calcularCoeficiente(info);
 		return info;
 	}
-	
+
+
 	private void ajustarAlturas(MareaInfo info, int ajustePleamar, int ajusteBajamar) {
 		if(info.alturaSiguiente>info.alturaAnterior) {
 			info.alturaSiguiente += ajustePleamar;
@@ -599,6 +601,11 @@ public class Modelo {
 				listener.datosCargados();
 			});
 		});
+	}
+
+
+	public List<Sitio> getSitios() {
+		return Arrays.asList(sitios);
 	}
 	
 }

@@ -12,7 +12,11 @@ PRIORITARIOS
     si la tuviera sería ya del año siguiente poraquello de tener la matriz tipo "Rolling". Lo mismo
     pasa si me situo el 1 de un mes aun no cargado a las 1h de la mañana que no tiene evento
     anterior.
-[ ] Impedir que la app se pueda girar.
+[X] Impedir que la app se pueda girar.
+[ ] Botón para abrir página de la Aemet del sitio que vemos
+[ ] Botón para abrir Mapa de google con las estaciones (o con la actual).
+
+
 
 
 
@@ -23,7 +27,7 @@ SECUNDARIOS
 [X] Limpiar ficheros que sobran del proyecto
 [X] Poner id aemet en todos los sitios.
 [X] Quitar paginador
-[ ] Mostrar más info que "Obteniendo datos..."... Si falló o si está descargando ... etc...
+[X] Mostrar más info que "Obteniendo datos..."... Si falló o si está descargando ... etc...
 [X] Mostrar en la zona de abajo si es pleamar alineado arriba y si es bajamar alineado abajo.
 [ ] Cambiar AsyncTask por Executor donde aparezca.
 [X] Mejorar Icono. (QUizças poner doble virgulilla)...
@@ -39,7 +43,11 @@ SECUNDARIOS
 [X] Línea derecha de la zona de la piscina es un azul cantoso
 [X] Hacer más estrecha la zona de la piscina...
 [ ] Mostrar el evento actual en la posición X, Y acorde a la onda...
-[ ] Probar a Añadir botones abajo para Sitio, Fecha y Tabla.
+[X] Probar a Añadir botones abajo para Sitio, Fecha y Tabla.
 [ ] Mostrar evento siguiente al siguiente. O sea 3 eventos... El anterior y 2 siguientes...??
 [ ] Botón para ir a Aemet según sugirió Jonhatan.
 [ ] Botón para ver en google maps las coordenadas de la estación.
+
+
+DESCARTADOS
+[ ] Poner Widget de la Aemet abajo...
