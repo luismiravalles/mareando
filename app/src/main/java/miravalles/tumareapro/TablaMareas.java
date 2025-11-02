@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 
 import android.app.Activity;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
@@ -14,18 +15,27 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
+import androidx.core.content.res.ResourcesCompat;
+
 public class TablaMareas extends Activity {
 	
 	private static final long MILIS_DIA=1000*60*60*24;
 	
 	private static SimpleDateFormat sdf=new SimpleDateFormat("EEE, dd MMM");
+
+	Sizer sizer=new Sizer();
+
+	Typeface fontAwesome;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.tabla_mareas);
+		fontAwesome=ResourcesCompat.getFont(this, R.font.fontawesome);
 		cargar();
 	}
+
+
 	
 	private void cargar() {
 		Date fechaVista=new Date(getIntent().getExtras().getLong("fecha"));
@@ -79,54 +89,7 @@ public class TablaMareas extends Activity {
 			fila.addView(ll);
 			MareaInfo info=Modelo.get().getMareaInfo(posicion, fecha);
 			while(info.siguiente.getTime() < time + MILIS_DIA) {
-				LinearLayout cols=new LinearLayout(this);
-				cols.setOrientation(LinearLayout.HORIZONTAL);
-				cols.setWeightSum(100);
-				ll.addView(cols);
-				
-				LayoutParams campoLp=
-						new LayoutParams(
-								0, LayoutParams.WRAP_CONTENT
-								);
-				campoLp.weight=80;
-				TextView campo=new TextView(this);
-				campo.setTextColor(0xFFFFFFFF);
-				campo.setText(
-						getString(info.getNombreProximo()) + "    "
-						+ info.getHoraSiguiente() + "    "
-						+ info.coeficiente + "  "
-						+ info.getAlturaSiguiente() );
-				int backgroundColor;
-				if(info.alturaAnterior>info.alturaSiguiente) {
-					backgroundColor=Estilo.FONDO_BAJAMAR_TABLA;
-				} else {
-					backgroundColor=Estilo.FONDO_PLEAMAR_TABLA;
-				}
-				cols.setBackgroundColor(backgroundColor);
-				campo.setPadding(4, 2, 0, 2);
-				campo.setLayoutParams(campoLp);
-				cols.addView(campo);
-				
-				LayoutParams aguaLp=
-						new LayoutParams(
-								0, LayoutParams.FILL_PARENT
-								);
-				aguaLp.weight=20;
-				
-				AguaTabla agua=new AguaTabla(this);
-				if(info.alturaAnterior>info.alturaSiguiente) {
-					agua.setBajamar(true);
-				}
-				agua.setColor(0xFF0066FF);
-				agua.setBackgroundColor(0xFF000000);
-				agua.setLayoutParams(aguaLp);
-				agua.setMax(Config.maxAltura());
-				agua.setMin(0);
-				agua.setAltura(info.alturaSiguiente);
-				agua.setPadding(1,1,1,1);
-				cols.addView(agua);
-				
-				
+				imprimirDatosMarea(ll, info);
 				Date sig=new Date(info.siguiente.getTime()+1L);
 				if(!Modelo.get().existeFecha(sig)) {
 					return;
@@ -135,9 +98,96 @@ public class TablaMareas extends Activity {
 				if(info.siguiente.getTime() <= sig.getTime()) {
 					break;
 				}
-				Log.i("T", "" + info.siguiente);
 			}
 		}
+	}
+
+
+	private TextView newColumn(LinearLayout ll, int peso) {
+		TextView campo=new TextView(this);
+		campo.setTypeface(Typeface.DEFAULT_BOLD);
+		campo.setPadding(8, 12, 8, 12);
+		LayoutParams campoLp=new LayoutParams(0, LayoutParams.WRAP_CONTENT);
+		campoLp.weight=peso;
+		campo.setLayoutParams(campoLp);
+		ll.addView(campo);
+		return campo;
+	}
+
+	private int imprimirNombre(LinearLayout ll, MareaInfo info) {
+		int peso=10;
+		TextView campo=newColumn(ll, peso);
+		campo.setTypeface(fontAwesome);
+		if(info.alturaSiguiente>info.alturaAnterior) {
+			campo.setTextColor(0xFFAA2222);
+			campo.setText("\uf062");
+		} else {
+			campo.setTextColor(0xFF22AA22);
+			campo.setText("\uf063");
+		}
+		return peso;
+	}
+
+	private int imprimirHora(LinearLayout ll, MareaInfo info) {
+		int peso=25;
+		TextView campo=newColumn(ll,peso);
+		campo.setText(info.getHoraSiguiente());
+		return peso;
+	}
+
+	private int imprimirAltura(LinearLayout ll, MareaInfo info) {
+		int peso=15;
+		TextView campo=newColumn(ll, peso);
+		campo.setText(info.getAlturaSiguiente());
+		return peso;
+	}
+
+	private int imprimirCoeficiente(LinearLayout ll, MareaInfo info) {
+		int peso=15;
+		TextView campo=newColumn(ll, 15);
+		campo.setTextAlignment(TextView.TEXT_ALIGNMENT_TEXT_END);
+		campo.setText(Integer.toString(info.coeficiente));
+		return peso;
+	}
+
+	private int getBackgroundColor(MareaInfo info) {
+		int backgroundColor;
+		if(info.alturaAnterior>info.alturaSiguiente) {
+			backgroundColor=Estilo.FONDO_BAJAMAR_TABLA;
+		} else {
+			backgroundColor=Estilo.FONDO_PLEAMAR_TABLA;
+		}
+		return backgroundColor;
+	}
+
+	private void imprimirDatosMarea(LinearLayout ll, MareaInfo info) {
+		LinearLayout cols=new LinearLayout(this);
+		cols.setOrientation(LinearLayout.HORIZONTAL);
+		cols.setWeightSum(100);
+		cols.setBackgroundColor(getBackgroundColor(info));
+		ll.addView(cols);
+
+		int peso=0;
+		peso+=imprimirNombre(cols, info);
+		peso+=imprimirHora(cols, info);
+		peso+=imprimirAltura(cols, info);
+		peso+=imprimirCoeficiente(cols, info);
+
+		LayoutParams aguaLp=new LayoutParams(0, LayoutParams.MATCH_PARENT);
+		aguaLp.weight=100 - peso;
+
+		AguaTabla agua=new AguaTabla(this);
+		if(info.alturaAnterior>info.alturaSiguiente) {
+			agua.setBajamar(true);
+		}
+		agua.setColor(0xFF0044AA);
+		agua.setBackgroundColor(0xFF000044);
+		agua.setLayoutParams(aguaLp);
+		agua.setMax(Config.maxAltura());
+		agua.setMin(0);
+		agua.setAltura(info.alturaSiguiente);
+		agua.setPadding(1,1,1,1);
+		cols.addView(agua);
 	}
 	
 	

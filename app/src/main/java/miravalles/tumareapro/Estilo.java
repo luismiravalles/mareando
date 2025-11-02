@@ -18,8 +18,8 @@ public class Estilo {
 	public static final int COLOR_TEXTO_BAJAMAR= COLOR_TEXTO_HORA_BAJAMAR;
 	
 	
-	public static final int FONDO_PLEAMAR_TABLA = 0xFF7f3c3c;
-	public static final int FONDO_BAJAMAR_TABLA = 0xFF3c6c3c;
+	public static final int FONDO_PLEAMAR_TABLA = 0xFF442222;
+	public static final int FONDO_BAJAMAR_TABLA = 0xFF224422;
 	
 	public static final int COLOR_TEXTO_TEMPERATURA = 0xFFAAEEFF;
 	
