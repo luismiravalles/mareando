@@ -15,9 +15,10 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.res.ResourcesCompat;
 
-public class TablaMareas extends Activity {
+public class TablaMareas extends AppCompatActivity {
 	
 	private static final long MILIS_DIA=1000*60*60*24;
 	
@@ -54,9 +55,12 @@ public class TablaMareas extends Activity {
 		for(long i=0; i<30 * MILIS_DIA; i+=MILIS_DIA) {
 			long time=desde.getTime()+i;
 			Date fecha=new Date(time);
+			/*
 			if(!Modelo.get().existeFecha(fecha)) {
 				break;
-			}			
+			}
+			*/
+
 			TableRow fila=new TableRow(this);
 			fila.setWeightSum(100f);
 			if(par) {
@@ -88,13 +92,20 @@ public class TablaMareas extends Activity {
 			ll.setLayoutParams(tll);
 			fila.addView(ll);
 			MareaInfo info=Modelo.get().getMareaInfo(posicion, fecha);
-			while(info.siguiente.getTime() < time + MILIS_DIA) {
+			while(info.siguiente!=null && info.siguiente.getTime() < time + MILIS_DIA) {
 				imprimirDatosMarea(ll, info);
 				Date sig=new Date(info.siguiente.getTime()+1L);
+				/*
 				if(!Modelo.get().existeFecha(sig)) {
 					return;
 				}
+				*/
+
 				info=Modelo.get().getMareaInfo(posicion, sig);
+				if(info.siguiente==null) {
+					// Parece que no hay información
+					break;
+				}
 				if(info.siguiente.getTime() <= sig.getTime()) {
 					break;
 				}
@@ -136,7 +147,7 @@ public class TablaMareas extends Activity {
 	}
 
 	private int imprimirAltura(LinearLayout ll, MareaInfo info) {
-		int peso=15;
+		int peso=25;
 		TextView campo=newColumn(ll, peso);
 		campo.setText(info.getAlturaSiguiente());
 		return peso;
@@ -146,7 +157,9 @@ public class TablaMareas extends Activity {
 		int peso=15;
 		TextView campo=newColumn(ll, 15);
 		campo.setTextAlignment(TextView.TEXT_ALIGNMENT_TEXT_END);
-		campo.setText(Integer.toString(info.coeficiente));
+		if(info.coeficiente>0) {
+			campo.setText(Integer.toString(info.coeficiente));
+		}
 		return peso;
 	}
 

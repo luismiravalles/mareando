@@ -142,7 +142,7 @@ public class Sitio {
 	}
 
 	public void cargarDatos(final Context contexto, final int ano, final int mes, final Runnable runnable) {
-		if(yaCargado(mes)) {
+		if(yaCargado(mes) && yaCargado(nextRollingMes(mes))) {
 			runnable.run();
 			return;
 		}
@@ -157,6 +157,19 @@ public class Sitio {
 
 	private boolean yaCargado(int mes) {
 		return altura[mes][0]!=0;
+	}
+
+	/**
+	 * Retorna el mes siguiente o cero si pasamos de Diciembre.
+	 * @param mes
+	 * @return El mes siguiente o cero
+	 */
+	private int nextRollingMes(int mes) {
+		mes++;
+		if(mes>=12) {
+			mes=0;
+		}
+		return mes;
 	}
 
 	private void cargarDatosDosMeses(final Context contexto, int ano, int mes) {

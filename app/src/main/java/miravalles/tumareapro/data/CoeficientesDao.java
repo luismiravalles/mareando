@@ -25,6 +25,11 @@ public class CoeficientesDao {
                 });
     }
 
+    /**
+     * Se cargan los coeficientes, pero OJO
+     * @param ano
+     * @return
+     */
     public int[][] cargarCoeficientes(int ano) {
         int [][] coeficientes = new int[12][31];
         this.cacheDao.descargarSiEsNecesario(ano);

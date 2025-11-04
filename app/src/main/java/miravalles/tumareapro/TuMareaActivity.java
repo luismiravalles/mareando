@@ -24,6 +24,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.Typeface;
 import android.location.Location;
 import android.location.LocationListener;
 import android.net.Uri;
@@ -43,12 +44,15 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.core.view.WindowCompat;
 
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Display;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -63,6 +67,7 @@ import android.widget.ImageView.ScaleType;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class TuMareaActivity extends AppCompatActivity implements OnClickListener, LocationListener {
@@ -76,6 +81,8 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 	// private SitioView sitioView;
 
 	private boolean pies;
+
+	Typeface fontAwesome;
 	
 	public Date getFechaVista() {
 		return fechaVista;
@@ -93,6 +100,8 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 //	ImageButton botonPapelera;
 //	ImageButton botonBorrarSitio;
 
+	LinearLayout botonera;
+
 	private int altoMapa;
 	
 	final DateFormat fechaFormatoTitulo=new SimpleDateFormat("dd MMM");
@@ -107,6 +116,8 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 	private boolean mostrarAemet;
 
 	public static int REQUEST_MAP=1001;
+
+	Sizer sizer=new Sizer();
 
 
 	ActivityResultLauncher<Intent> mapaLauncher=registerForActivityResult(
@@ -137,6 +148,7 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 	@Override
     public void onCreate(Bundle savedInstanceState) {
 
+		fontAwesome= ResourcesCompat.getFont(this, R.font.fontawesome);
 		AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
     	
 		Config.init(this);
@@ -181,11 +193,17 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
         */
         zonaApuntador=(RelativeLayout)findViewById(R.id.zonaApuntador);
 
-        fechaVista=new Date();        
+		botonera=findViewById(R.id.botonera);
+		crearBotones();
+
+        fechaVista=new Date();
+		/*
         if(!modelo.existeFecha(fechaVista)) {
         	mostrarErrorFecha();
         	return;
         }
+        */
+
 
         mareaVisor =new MareaVisor(this, modelo);
 		raiz.addView(mareaVisor.crearView(this));
@@ -193,24 +211,17 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
         mapaView=(ImageView)findViewById(R.id.mapa);
         mapaView.setAdjustViewBounds(true);
         mapaView.setScaleType(ScaleType.FIT_START);
-        mapaView.setOnTouchListener(new View.OnTouchListener() {
-        	
-			
-			public boolean onTouch(View vista, MotionEvent ev) {
+        mapaView.setOnTouchListener((v, ev) -> {
 				if(ev.getAction()==MotionEvent.ACTION_UP) {					
 					int x=(int)ev.getX();
 					int y=(int)ev.getY();
 					buscarPosicion(x,y);
 				}
-					return true;
-			}
+				return true;
         });
         
         apuntador=new ImageView(this);
-        
-   
         apuntador.setImageResource(R.drawable.apuntador);
-        
         
         RelativeLayout.LayoutParams lpApuntador=new RelativeLayout.LayoutParams(
         		LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);              
@@ -229,6 +240,56 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 		prepararCabecera();
 
     }
+
+	private void crearBotones() {
+		crearBoton(botonera, "Tabla", "\uf0ce",  v -> mostrarTablaMareas()) ;
+		crearBoton(botonera, "Mapa", "\uf279" , v-> mostrarMapaSitios());
+		crearBoton(botonera, "Acerca de", "\uf059", v -> acercaDe());
+	}
+
+	public void crearBoton(LinearLayout raiz,  String texto, String textIcon, OnClickListener l) {
+		LinearLayout llBoton=new LinearLayout(this);
+		llBoton.setClickable(true);
+
+		TypedValue outValue = new TypedValue();
+		getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
+
+// Asignarlo como fondo
+		llBoton.setBackgroundResource(outValue.resourceId);
+
+		sizer.set(llBoton).fillHeight().pctWidth(33);
+		llBoton.setPadding(10, 10 , 10, 10);
+		llBoton.setOrientation(LinearLayout.VERTICAL);
+
+
+		TextView icono=new TextView(this);
+		icono.setTypeface(fontAwesome);
+		icono.setText(textIcon);
+		icono.setTextSize(Util.dp(6,raiz));
+		icono.setTextAlignment(TextView.TEXT_ALIGNMENT_CENTER);
+		icono.setBackgroundColor(0xFF222233);
+		llBoton.addView(icono);
+
+
+
+		TextView textView=new TextView(this);
+		llBoton.addView(textView);
+
+		//textView.setTypeface(fontAwesome);
+		//textView.setText(textIcon);
+
+		textView.setText(texto);
+
+		textView.setTextColor(0xFF777777);
+		textView.setTextSize(Util.dp(4,raiz));
+		textView.setTextAlignment(TextView.TEXT_ALIGNMENT_CENTER);
+		textView.setGravity(Gravity.CENTER_VERTICAL);
+		textView.setBackgroundColor(0xFF222233);
+		sizer.set(textView).fillWidth().fillHeight();
+
+		llBoton.setOnClickListener(l);
+		raiz.addView(llBoton);
+	}
 
 	private void prepararCabecera() {
 		cabSitioFecha=new CabeceraSitioFecha();
@@ -561,18 +622,27 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 			return true;
 		}
 		if(item.getItemId()==R.id.acercade) {
-			Util.mostrarAviso(TuMareaActivity.this, "acercaDeMareando" );
+			acercaDe();
 			return true;
 		}
 
 		if(item.getItemId()==R.id.mapasitios) {
-			Intent intent = new Intent(this, MapaSitiosActivity.class);
-			intent.putExtra("indiceSitio", getIndiceSitio());
-			mapaLauncher.launch(intent);
+			mostrarMapaSitios();
+			return true;
 		}
 
 		return super.onContextItemSelected(item);
 
+	}
+
+	private void acercaDe() {
+		Util.mostrarAviso(TuMareaActivity.this, "acercaDeMareando" );
+	}
+
+	private void mostrarMapaSitios() {
+		Intent intent = new Intent(this, MapaSitiosActivity.class);
+		intent.putExtra("indiceSitio", getIndiceSitio());
+		mapaLauncher.launch(intent);
 	}
 
 	

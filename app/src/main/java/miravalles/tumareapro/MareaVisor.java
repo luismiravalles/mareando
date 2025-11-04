@@ -80,7 +80,7 @@ public class MareaVisor  implements AemetListener {
 		viewRaiz.addView(crearZonaInfoSuperior(context));
 		viewRaiz.addView(crearZonaInfo(context));
 		// Esta zona inferior podría ser donde se arrastrara el dedo...
-		viewRaiz.addView(crearZonaInferior(context)); // Para dejar un espacio vacio...
+		// viewRaiz.addView(crearZonaInferior(context)); // Para dejar un espacio vacio...
 
 		return viewRaiz;
 	}
@@ -98,7 +98,7 @@ public class MareaVisor  implements AemetListener {
 		});
 	}
 
-	private void cargarDatos() {
+	public void cargarDatos() {
 		GregorianCalendar gc = Modelo.utcCalendar();
 		gc.setTime(contexto.getFechaVista());
 		int mes=gc.get(Calendar.MONTH);

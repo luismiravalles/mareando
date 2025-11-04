@@ -40,10 +40,13 @@ public class Modelo {
 											    // datos con desfase
 
 	private Sitio []sitios=null;
-	
-	private int [][]coeficientes;
+
+	/**
+	 * Guardamos los coeficientes del año actual y del año siguiente:
+	 */
+	private int [][][]coeficientes;
 	// Para saber si los tengo que recargar...
-	private int anoCoeficientes;
+
 			
 
 	
@@ -345,8 +348,12 @@ public class Modelo {
 		gc.setTime(info.hora);
 		int dia = gc.get(gc.DAY_OF_MONTH) - 1;
 		int mes = gc.get(gc.MONTH);
+		int anoDelta = gc.get(GregorianCalendar.YEAR) - Util.thisYear();
+		if(anoDelta<0) {
+			return;
+		}
 		if(coeficientes!=null) { // Podría no estar cargado aun.
-			info.coeficiente=coeficientes[mes][dia];
+			info.coeficiente=coeficientes[anoDelta][mes][dia];
 		}
 	}
 	
@@ -588,15 +595,17 @@ public class Modelo {
 	}
 	
 	public void cargarCoeficientes(Context contexto, int ano, DatosListener listener)  {
-		if(coeficientes!=null && anoCoeficientes==ano) {
+		int anoDelta=ano-Util.thisYear();
+		if(coeficientes!=null) {
 			listener.datosCargados();
 			return;
 		}
 		Executor executor= Executors.newSingleThreadExecutor();
 		executor.execute(() -> {
 			CoeficientesDao coeficientesDao=new  CoeficientesDao(contexto);
-			coeficientes=coeficientesDao.cargarCoeficientes(ano);
-			anoCoeficientes=ano;
+			coeficientes=new int[2][][];
+			coeficientes[0]=coeficientesDao.cargarCoeficientes(ano);
+			coeficientes[1]=coeficientesDao.cargarCoeficientes(ano+1);
 			new Handler(Looper.getMainLooper()).post(() ->{
 				listener.datosCargados();
 			});
