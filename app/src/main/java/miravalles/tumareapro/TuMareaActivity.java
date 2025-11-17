@@ -14,6 +14,7 @@ import miravalles.BitmapUtil;
 import miravalles.tumareapro.domain.Foto;
 import miravalles.tumareapro.vo.GeoLocalizacion;
 
+import android.animation.ValueAnimator;
 import android.app.ComponentCaller;
 import android.app.DatePickerDialog;
 import android.content.Intent;
@@ -254,23 +255,20 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 		TypedValue outValue = new TypedValue();
 		getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
 
-// Asignarlo como fondo
+		// Asignarlo como fondo
 		llBoton.setBackgroundResource(outValue.resourceId);
 
 		sizer.set(llBoton).fillHeight().pctWidth(33);
 		llBoton.setPadding(10, 10 , 10, 10);
 		llBoton.setOrientation(LinearLayout.VERTICAL);
 
-
 		TextView icono=new TextView(this);
 		icono.setTypeface(fontAwesome);
 		icono.setText(textIcon);
-		icono.setTextSize(Util.dp(6,raiz));
+		icono.setTextSize(Util.dp(8,raiz));
 		icono.setTextAlignment(TextView.TEXT_ALIGNMENT_CENTER);
 		icono.setBackgroundColor(0xFF222233);
 		llBoton.addView(icono);
-
-
 
 		TextView textView=new TextView(this);
 		llBoton.addView(textView);
@@ -279,9 +277,8 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 		//textView.setText(textIcon);
 
 		textView.setText(texto);
-
 		textView.setTextColor(0xFF777777);
-		textView.setTextSize(Util.dp(4,raiz));
+		textView.setTextSize(Util.dp(6,raiz));
 		textView.setTextAlignment(TextView.TEXT_ALIGNMENT_CENTER);
 		textView.setGravity(Gravity.CENTER_VERTICAL);
 		textView.setBackgroundColor(0xFF222233);
@@ -289,6 +286,21 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 
 		llBoton.setOnClickListener(l);
 		raiz.addView(llBoton);
+	}
+
+	public void animarMarea() {
+		long antes=this.getFechaVista().getTime() - 2 * 60 * 60 * 1000;
+		ValueAnimator animator=ValueAnimator.ofFloat(antes, this.getFechaVista().getTime());
+		animator.setDuration(2 * 1000);
+		animator.addUpdateListener(v -> {
+			this.getFechaVista().setTime(
+						((Float)v.getAnimatedValue()).longValue());
+			mareaVisor.refresh();
+		});
+		new Handler(Looper.getMainLooper()).post(() -> {
+			animator.start();
+		});
+
 	}
 
 	private void prepararCabecera() {
@@ -319,6 +331,9 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
     @Override
     public void onResume() {
     	Log.d("T","On Resume");
+		if(fechaVista==null) {
+			fechaVista=new Date();
+		}
     	super.onResume();
     }
     

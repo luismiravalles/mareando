@@ -41,6 +41,7 @@ public class MareaVisor  implements AemetListener {
 	Modelo modelo;
 	private TuMareaActivity contexto;
 
+	private boolean primeraVez=true;
 
 	private LinearLayout viewRaiz;
 
@@ -95,6 +96,10 @@ public class MareaVisor  implements AemetListener {
 		Activity activity=(Activity)viewRaiz.getContext();
 		new Handler(Looper.getMainLooper()).post(() -> {
 			actualizarDatos(viewRaiz, indiceSitio);
+			if(primeraVez) {
+				contexto.animarMarea();
+				primeraVez=false;
+			}
 		});
 	}
 

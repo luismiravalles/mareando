@@ -23,23 +23,30 @@
         	</RelativeLayout>        	        	        
     </ScrollView>
 
-
-	<!--   AQUI DENTRO VA EL VIEWER -->
 	<LinearLayout
-		android:id="@+id/raiz"
 		android:orientation="vertical"
 		android:layout_width="match_parent"
 		android:layout_height="0dp"
-		android:layout_weight="92"
+		android:layout_weight="1">
 
-		/>
+		<!--   AQUI DENTRO VA EL VIEWER -->
+		<LinearLayout
+			android:id="@+id/raiz"
+			android:orientation="vertical"
+			android:layout_width="match_parent"
+			android:layout_height="0dp"
+			android:layout_weight="1"
+			/>
 
-	<LinearLayout
-		android:id="@+id/botonera"
-		android:layout_width="match_parent"
-		android:orientation="horizontal"
-		android:layout_height="0dp"
-		android:layout_weight="8"
-		/>
+		<LinearLayout
+			android:id="@+id/botonera"
+			android:layout_width="match_parent"
+			android:orientation="horizontal"
+			android:layout_height="wrap_content"
+			/>
+
+
+
+	</LinearLayout>
 </LinearLayout>
 

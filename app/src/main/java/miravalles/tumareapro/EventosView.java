@@ -12,6 +12,7 @@ import android.graphics.Paint.Align;
 import android.graphics.Paint.Style;
 import android.graphics.Path;
 import android.graphics.Point;
+import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Shader.TileMode;
@@ -94,11 +95,14 @@ public class EventosView extends View {
 			return; // Aun no tenemos datos...
 		}
 		pintarFondoTransicion(canvas);
-		pintarOnda(canvas,info.getIntAlturaAnterior()-info.getIntAlturaSiguiente());
 
+		if(info.anterior!=null && info.siguiente!=null) {
+			pintarOnda(canvas,info.getIntAlturaAnterior()-info.getIntAlturaSiguiente());
+			pintarPuntoActual(canvas);
+			pintarEvento(canvas, info.getHoraAnterior(), info.getNombreAnterior(), -1 );
+			pintarEvento(canvas, info.getHoraSiguiente(), info.getNombreProximo(), 0);
 
-		pintarEvento(canvas, info.getHoraAnterior(), info.getNombreAnterior(), -1 );
-		pintarEvento(canvas, info.getHoraSiguiente(), info.getNombreProximo(), 0);
+		}
 
 		if(infoSiguiente!=null) {
 			pintarEvento(canvas, infoSiguiente.getHoraSiguiente(),
@@ -140,20 +144,28 @@ public class EventosView extends View {
 	void pintarEstadoActual(Canvas canvas) {
 		Paint paint=getPaintEstadoActual();
 
-		float delta=(getHeight() - paint.getTextSize()*2)/2;
-		int posx=width/4;
+		float deltaY=(getHeight() - paint.getTextSize()*2)/2;
+		float posx=width/4;
+
+		PointF punto=puntoActual(canvas);
+
+		posx=Math.max(
+				Math.min(punto.x, width/2-paint.getTextSize()*4),
+				paint.measureText("Pleamar Subi")
+				);
+		deltaY=Math.min(punto.y, getHeight() - paint.getTextSize()*3);
 		
 		Date ahora=new Date();
 		if(DateUtils.isToday(info.hora.getTime())) {
 			canvas.drawText(
 					info.getHora(), 
 						posx,
-						delta+paint.getTextSize(),
+						deltaY+paint.getTextSize(),
 					paint);
 			canvas.drawText(
 					getContext().getString(info.getEstado()),
 						posx,
-						 delta + 2 *  paint.getTextSize(),
+						 deltaY + 2 *  paint.getTextSize(),
 					paint);
 			
 		} else {
@@ -169,15 +181,15 @@ public class EventosView extends View {
 			canvas.drawText(
 					texto,
 					posx,
-					delta+paint.getTextSize()*1,paint);
+					deltaY+paint.getTextSize()*1,paint);
 			canvas.drawText(
 						info.getHora(),
 						posx,
-						delta+paint.getTextSize()*2,paint);
+						deltaY+paint.getTextSize()*2,paint);
 			canvas.drawText(
 					getContext().getString(info.getEstado()), 
 						posx,
-						delta+paint.getTextSize()*3,paint);
+						deltaY+paint.getTextSize()*3,paint);
 						
 		}
 	}
@@ -258,13 +270,58 @@ public class EventosView extends View {
 	}
 	
 
+	PointF puntoActual(Canvas canvas) {
+		if(info.siguiente==null || info.anterior==null) {
+			return new PointF(0,0);
+		}
+
+		long  distanciaEntreMareas = info.siguiente.getTime() - info.anterior.getTime();
+		long  ahora	 = info.hora.getTime();
+		double  x = (ahora - info.anterior.getTime()) * (Math.PI) / distanciaEntreMareas;
+
+		boolean bajando=info.alturaSiguiente < info.alturaAnterior;
+		float desplazamiento = (float)( bajando? Math.PI / 2f : -Math.PI / 2f);
+		float centerY = altoOnda() / 2f;
+		float amplitude = altoOnda() / 2f; // altura máxima de la onda
+
+		float xPunto = (float)(xIniOnda() + x * (anchoOnda()/2) / Math.PI);
+		float yPunto = (float)(yIniOnda() + centerY - Math.sin(x + desplazamiento) * amplitude);
+
+		return new PointF(xPunto, yPunto);
+	}
+
+	private void pintarPuntoActual(Canvas canvas) {
+		Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);
+		paint.setStyle(Paint.Style.FILL);
+		paint.setColor(0xFFCC7777);
+
+		PointF punto=puntoActual(canvas);
+		canvas.drawCircle(punto.x, punto.y, 10, paint);
+	}
+
+	private float anchoOnda() {
+		return getWidth() - (2*xIniOnda());
+	}
+
+	private float xIniOnda() {
+		return getWidth()/6;
+	}
+
+	private float yIniOnda() {
+		return getPaintHoraEventos().getTextSize();
+	}
+
+	private float altoOnda() {
+		return getHeight() - 2 * yIniOnda();
+	}
+
 	private void pintarOnda(Canvas canvas, int fase) {
 
-		float xIni = getWidth()/8;
-		float w = getWidth() - (2*xIni);
+		float xIni = xIniOnda();
+		float w = anchoOnda();
 
-		float yIni=getPaintHoraEventos().getTextSize();
-		float h = getHeight() - 2 * yIni;
+		float yIni=yIniOnda();
+		float h = altoOnda();
 		float centerY = h / 2f;
 		float amplitude = h / 2f; // altura máxima de la onda
 		float desplazamiento = (float)( fase>0? Math.PI / 2f : -Math.PI / 2f);

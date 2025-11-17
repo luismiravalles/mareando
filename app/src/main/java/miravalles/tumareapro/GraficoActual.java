@@ -24,11 +24,14 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Shader.TileMode;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+
+import androidx.appcompat.content.res.AppCompatResources;
 
 import com.google.android.material.snackbar.Snackbar;
 
@@ -42,7 +45,7 @@ public class GraficoActual extends View {
 	private static Bitmap iconoCoef=null;
 	
 	private static Map<String, Bitmap> bitmaps=new HashMap<String,Bitmap>();
-	
+
 	private int indiceSitio;
 	
 	MareaInfo info;
@@ -257,14 +260,31 @@ public class GraficoActual extends View {
 				
 				if(datos.getCielo()!=null) {
 					Bitmap imagen=getBitmap(datos.getNombreBitmapCielo());
-					if(imagen!=null) {
+					int y=192;
+					Paint paintCielo=new Paint();
+					paintCielo.setTextSize(getTextSize() * 3 / 5);
+					paintCielo.setTextAlign(Align.LEFT);
+					paintCielo.setColor(0xFFAAAAAA);
+					canvas.drawText(datos.getCielo(),
+							x+10, y + 20, paintCielo);
+
+					Drawable drawable=getDrawableCielo(datos.getCielo());
+					if(drawable!=null) {
+						canvas.save();
+						canvas.translate(x+10, 10);
+						int w = y - 20;
+						drawable.setBounds(0, 0, w, w);
+						drawable.draw(canvas);
+						x+=w + 40;
+						canvas.restore();
+					} else 	if(imagen!=null) {
 						Matrix matrix=new Matrix();
 						float escalaCielo=((float)width / 4f) / (float)imagen.getWidth();
 						matrix.postScale(escalaCielo,escalaCielo);
 						matrix.postTranslate(x, - (imagen.getWidth()*escalaCielo/6));
-						canvas.drawBitmap(imagen,matrix, null);	
-						x+= imagen.getWidth() * escalaCielo + 2;
-					
+						canvas.drawBitmap(imagen,matrix, null);
+						x+=y + 40;
+
 					}
 				}
 
@@ -302,12 +322,31 @@ public class GraficoActual extends View {
 			} else {
 				Log.i("Aemet", "No hay datos para " + info.hora + " codigo: " +  codigoAemet);
 			}
-			
 		}
-	
 	}
 
 
+	private Drawable getDrawableCielo(String cielo) {
+		int id=0;
+		if(cielo==null) {
+			return null;
+		}
+		cielo=cielo.toLowerCase();
+		if(cielo.contains("con tormenta")) {
+			id=R.drawable.cielo_cubierto_con_tormenta;
+		} else if (cielo.contains("despejado")) {
+			id=R.drawable.cielo_despejado;
+		} else if(cielo.contains("con lluvia escasa")) {
+			id = R.drawable.cielo_nuboso_con_lluvia_escasa;
+		} else if(cielo.contains("con lluvia")) {
+			id = R.drawable.cielo_nuboso_con_lluvia;
+		} else if(cielo.contains("poco nuboso") || cielo.contains("intervalos nubosos")) {
+			id= R.drawable.cielo_poco_nuboso;
+		} else if(cielo.contains("nuboso") || cielo.contains("cubierto")) {
+			id=R.drawable.cielo_nuboso;
+		}
+		return id>0?AppCompatResources.getDrawable(getContext(),id):null;
+	}
 
 	private Rect pintarCielo(Canvas canvas, Rect rect) {
 	
@@ -563,57 +602,7 @@ public class GraficoActual extends View {
 	
 	SimpleDateFormat diaMesFormat=new SimpleDateFormat("dd MMM");
 	
-	void pintarEstadoActual(Canvas canvas) {
-		Paint paint=getPaintEstadoActual();
-		paint.setTextAlign(Align.CENTER);
-		int delta=height+2*getTextSize();
-		
-		Date ahora=new Date();
-		if(DateUtils.isToday(info.hora.getTime())) {
-			canvas.drawText(
-					info.getHora(), 
-						width/2,
-						delta-getMargenInferior()+
-						paint.getTextSize(), 
-					paint);
-			canvas.drawText(
-					getContext().getString(info.getEstado()),
-						width/2,
-						delta-getMargenInferior()+
-						paint.getTextSize() + paint.getTextSize(), 
-					paint);
-			
-		} else {
-			// ES OTRO DIA VAMOS A PINTAR EL DIA Y LA HORA
-			paint=getPaintEstadoActual();
-			paint.setTextAlign(Align.CENTER);
-			paint.setTextSize(paint.getTextSize() * 3 / 4);
-			
-			String texto=null;
-			if(Util.isManana(info.hora)) {
-				texto=getResources().getString(R.string.tomorrow);
-			} else {
-				texto=diaMesFormat.format(info.hora);
-			}
-			canvas.drawText(
-					texto,
-					width/2,
-					delta-getMargenInferior()+paint.getTextSize()*1,paint);
-			canvas.drawText(
-						info.getHora(),
-						width/2,
-						delta-getMargenInferior()+paint.getTextSize()*2,paint);
-			canvas.drawText(
-					getContext().getString(info.getEstado()), 
-						width/2,
-						delta-getMargenInferior()+paint.getTextSize()*3,paint);
-						
-		}
-		
 
-		
-	}
-	
 	
 	Paint getPaintEstadoActual() {
 		Paint paint=new Paint();
@@ -768,6 +757,7 @@ public class GraficoActual extends View {
 
 		int linea=0;
 		int ajuste=altoFila / 5; 
+
 		pintarImagen(canvas, iconoSol, 0, pad / 2 + ajuste, getTextSize());
 		String textoSol=formatHoraMinuto(info.orto) + " -> " + formatHoraMinuto(info.ocaso);
 		canvas.drawText(textoSol, getTextSize()+2,	pad + altoFila * linea + getTextSize() / 2, paint); 
@@ -831,6 +821,9 @@ public class GraficoActual extends View {
 		
 		return super.onTouchEvent(event);
 	}
+
+
+
 
 	public Bitmap getBitmap(String nombre) {
 		Bitmap result=bitmaps.get(nombre);
