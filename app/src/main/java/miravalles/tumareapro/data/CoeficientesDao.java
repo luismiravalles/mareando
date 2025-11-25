@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+import miravalles.tumareapro.domain.Configuracion;
+
 /**
  * Carga los coeficientes de una URL utilizando un archivo privado como caché.
  */
@@ -20,7 +22,7 @@ public class CoeficientesDao {
     public CoeficientesDao(Context context) {
         this.cacheDao=new CacheDao<>(context, "coeficientes",
                 year -> {
-                    return "https://macetero.duckdns.org/tumarea/coeficientes-"
+                    return Configuracion.getUrlMacetero("coeficientes-")
                                 + year + ".txt";
                 });
     }

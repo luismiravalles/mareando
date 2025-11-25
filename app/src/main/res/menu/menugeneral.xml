@@ -50,7 +50,6 @@
 	   	      android:title="@string/borrarfoto"/>	
    	 </group>     
      <item android:id="@+id/menu_ajustes"
-		 	android:visible="false"
           android:title="@string/ajustes"
 	/>
     <item 	android:id="@+id/ayuda"

@@ -1,6 +1,10 @@
 package miravalles.tumareapro;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.CharBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -8,15 +12,19 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import miravalles.BitmapUtil;
+import miravalles.tumareapro.domain.Configuracion;
 import miravalles.tumareapro.domain.Foto;
 import miravalles.tumareapro.vo.GeoLocalizacion;
 
 import android.animation.ValueAnimator;
+import android.app.AlertDialog;
 import android.app.ComponentCaller;
 import android.app.DatePickerDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -37,6 +45,7 @@ import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 
+import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContract;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -62,6 +71,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
+import android.webkit.WebView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
@@ -121,6 +131,8 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 	Sizer sizer=new Sizer();
 
 
+
+
 	ActivityResultLauncher<Intent> mapaLauncher=registerForActivityResult(
 			new ActivityResultContracts.StartActivityForResult(),
 			result -> {
@@ -136,7 +148,16 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 			}
 	);
 
-	
+	ActivityResultLauncher<Intent> preferenciasLauncher=registerForActivityResult(
+			new ActivityResultContracts.StartActivityForResult(),
+				this::recargarPreferencias);
+
+
+	public void recargarPreferencias(ActivityResult result) {
+		cargarPreferencias();
+		refresh();
+	}
+
 
     public boolean isMostrarAemet() {
 		return mostrarAemet;
@@ -153,6 +174,10 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 		AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
     	
 		Config.init(this);
+
+		Configuracion.setupRemoteConfig();
+		Configuracion.fetchConfig(this);
+
 		
 		//this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		
@@ -239,6 +264,9 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 
 		// CABECERA
 		prepararCabecera();
+
+		AvisadorNovedades avisador=new AvisadorNovedades();
+		avisador.verificarAviso(this);
 
     }
 
@@ -651,7 +679,10 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 	}
 
 	private void acercaDe() {
-		Util.mostrarAviso(TuMareaActivity.this, "acercaDeMareando" );
+		String pagina=Configuracion.getUrlMacetero("acerca-de-" +
+				getString(R.string.flavor) + ".html");
+
+		Util.mostrarAviso(TuMareaActivity.this, pagina);
 	}
 
 	private void mostrarMapaSitios() {
@@ -694,13 +725,12 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 				.getDefaultSharedPreferences(getBaseContext());
 		pies=prefs.getBoolean("pies", false);
 		MareaInfo.pies=pies;
-		
-		this.mostrarAemet=prefs.getBoolean("aemet", true);
+		this.mostrarAemet=true;
+
 	}
 	
 	public void mostrarAjustes() {
-		Intent myIntent = new Intent(this,PreferenciasActivity.class);
-		startActivityForResult(myIntent, PREFERENCIAS);    			
+		preferenciasLauncher.launch(new Intent(this,PreferenciasActivity.class));
 	}
 	
 	public void setRespetarTouchEvent(boolean respetarTouchEvent) {
@@ -758,5 +788,7 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
     public int getIndiceSitio() {
     	return mareaVisor.getIndiceSitio();
     }
+
+
     
 }

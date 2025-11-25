@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Mareando</string>
+
     <string name="subiendo">Subiendo</string>
     <string name="bajando">Bajando</string>
     <string name="pleamar">Pleamar</string>

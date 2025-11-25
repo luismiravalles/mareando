@@ -352,7 +352,7 @@ public class Modelo {
 		if(anoDelta<0) {
 			return;
 		}
-		if(coeficientes!=null) { // Podría no estar cargado aun.
+		if(coeficientes!=null && coeficientes[anoDelta]!=null) { // Podría no estar cargado aun.
 			info.coeficiente=coeficientes[anoDelta][mes][dia];
 		}
 	}

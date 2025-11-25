@@ -6,10 +6,7 @@
         android:summary="@string/alturaEnPiesDesc"
         android:key="pies"/>
     
-    <CheckBoxPreference
-        android:title="@string/integrarAemet"
-        android:summary="@string/integrarAemetDesc"
-        android:key="aemet"/>
+
     
    
 

@@ -13,3 +13,6 @@
 .externalNativeBuild
 .cxx
 local.properties
+tumarea
+/tumarea-miravalles-key.keystore
+/app/release/app-release.aab

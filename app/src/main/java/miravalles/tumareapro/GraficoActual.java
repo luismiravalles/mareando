@@ -300,7 +300,7 @@ public class GraficoActual extends View {
 							float escala=((float)width / 10f) / (float)imagen.getWidth();
 							
 							matrix.postRotate(datos.getAngulo(), imagen.getWidth()/2, imagen.getHeight()/2);	
-							int dy=0;
+							int dy=10;
 							int dx=0;
 							if("E".equals(datos.getDireccionViento()) ||
 									"O".equals(datos.getDireccionViento())) {
@@ -583,6 +583,12 @@ public class GraficoActual extends View {
 
 	private void pintarBordePiscina(Canvas canvas,
 			final int anchoBorde) {
+
+		Paint paintFondo=new Paint();
+		paintFondo.setColor(Color.TRANSPARENT);
+		CanvasUtil.drawRect(canvas,getMargenIzquierdo(), 0
+				,  width-2, height-2, paintFondo, CanvasUtil.paintBorde());
+
 		// Pintar el borde de la piscina no se ve afectado
 	    // por el alto del barquito.
 //		Rect rFondo=rectPiscina();

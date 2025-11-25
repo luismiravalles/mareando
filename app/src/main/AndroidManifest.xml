@@ -36,6 +36,8 @@
         <activity android:name="miravalles.tumareapro.AvisoActivity" />
 
         <activity android:name="miravalles.tumareapro.MapaSitiosActivity" />
+
+        <activity android:name="miravalles.tumareapro.PreferenciasActivity" />
     </application>
     
     

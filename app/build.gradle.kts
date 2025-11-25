@@ -2,6 +2,10 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+
+    // Para poder utilizar Firebase Remote Config
+    id("com.google.gms.google-services")
+
 }
 
 
@@ -11,16 +15,48 @@ android {
     compileSdk = 35
 
 
+    signingConfigs {
+        create("configMareando") {
+            storeFile = file("../nueva-miravalles-key.keystore")
+            storePassword = project.properties["PASSWORD"] as String
+            keyAlias = "miravalles"
+            keyPassword = project.properties["PASSWORD"] as String
+        }
+
+        create("configTumarea") {
+            storeFile = file("../tumarea-miravalles-key.keystore")
+            storePassword = project.properties["PASSWORD"] as String
+            keyAlias = "miravalles"
+            keyPassword = project.properties["PASSWORD"] as String
+
+        }
+    }
 
 
     defaultConfig {
         applicationId = "miravalles.mareame"
         minSdk = 24
         targetSdk = 35
-        versionCode = 9
-        versionName = "9"
+        versionCode = 41
+        versionName = "2026-2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    flavorDimensions += listOf("version")
+    productFlavors {
+        create("tumarea") {
+            dimension = "version"
+            applicationId = "miravalles.tumarea"
+            resValue("string", "app_name", "Tu Marea 2026")
+            resValue("string", "flavor", "tumarea")
+        }
+        create("mareando") {
+            dimension = "version"
+            applicationId = "miravalles.mareame"
+            resValue("string", "app_name", "Mareando")
+            resValue("string", "flavor", "mareando")
+        }
     }
 
     buildTypes {
@@ -30,6 +66,19 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            getByName("debug") {
+                signingConfig = signingConfigs.getByName("debug")
+            }
+
+            productFlavors.getByName("mareando") {
+                signingConfig = signingConfigs.getByName("configMareando")
+            }
+
+            productFlavors.getByName("tumarea") {
+                signingConfig = signingConfigs.getByName("configTumarea")
+            }
+
+
         }
     }
 
@@ -49,6 +98,10 @@ android {
 }
 
 dependencies {
+
+    // Firebase
+    implementation("com.google.firebase:firebase-config")
+    implementation(platform("com.google.firebase:firebase-bom:34.6.0"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

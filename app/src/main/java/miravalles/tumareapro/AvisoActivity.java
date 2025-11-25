@@ -24,8 +24,13 @@ public class AvisoActivity extends Activity  {
 		vista.setLayoutParams(lp);
 		setContentView(vista);
 		vista.getSettings().setAllowFileAccess(true);
-		String textoHtml=Util.leerAsset(this.getApplicationContext(),aviso + ".html");
-		vista.loadDataWithBaseURL("file:///android_asset/", textoHtml, "text/html", "utf-8", null);
+		if(aviso.startsWith("http")) {
+			vista.loadUrl(aviso);
+		} else {
+			String textoHtml=Util.leerAsset(this.getApplicationContext(),aviso + ".html");
+			vista.loadDataWithBaseURL("file:///android_asset/", textoHtml, "text/html", "utf-8", null);
+		}
+
 	}
 
 	
