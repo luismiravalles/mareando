@@ -13,6 +13,7 @@ import miravalles.tumareapro.Util;
 import miravalles.tumareapro.data.DatosSitioAno;
 import miravalles.tumareapro.data.InstitutoMarinaDatosDao;
 import miravalles.tumareapro.data.MapeoPuertos;
+import miravalles.tumareapro.vo.AnoMes;
 import miravalles.tumareapro.vo.GeoLocalizacion;
 import android.content.Context;
 import android.os.AsyncTask;
@@ -35,7 +36,6 @@ public class Sitio {
 	public int			[][]altura=new int[12][MAX];		// A�o y Mes
 
 	private String		errorInstitutoMarina[]=new String [12];
-
 
 	public boolean		deUsuario;
 	public int			unidadAltura;
@@ -141,16 +141,22 @@ public class Sitio {
 		return nom;
 	}
 
-	public void cargarDatos(final Context contexto, final int ano, final int mes, final Runnable runnable) {
-		if(yaCargado(mes) && yaCargado(nextRollingMes(mes))) {
+	public void cargarDatos(final Context contexto, final AnoMes anoMes, final Runnable runnable) {
+		if(yaCargado(anoMes.getMes()) && yaCargado(nextRollingMes(anoMes.getMes()))) {
 			runnable.run();
 			return;
 		}
 
 		Executor executor= Executors.newSingleThreadExecutor();
 		executor.execute( () -> {
-			cargarDatosDosMeses(contexto, ano, mes);
+			cargarDatosDosMeses(contexto, anoMes);
 			runnable.run();
+		});
+
+		// TODO ??? Continuar cargando x meses?
+		executor.execute( () -> {
+			AnoMes siguiente=anoMes.siguiente().siguiente();
+			cargarDatosDosMeses(contexto, siguiente);
 		});
 
 	}
@@ -172,15 +178,11 @@ public class Sitio {
 		return mes;
 	}
 
-	private void cargarDatosDosMeses(final Context contexto, int ano, int mes) {
+	private void cargarDatosDosMeses(final Context contexto, final AnoMes anoMes) {
 		InstitutoMarinaDatosDao dao=new InstitutoMarinaDatosDao(contexto);
-		dao.obtenerDatosMes(this, ano, mes);
-		mes++;
-		if(mes>=12) {
-			mes=0;
-			ano++;
-		}
-		dao.obtenerDatosMes(this, ano, mes);
+		dao.obtenerDatosMes(this, anoMes);
+		AnoMes siguiente=anoMes.siguiente();
+		dao.obtenerDatosMes(this, siguiente);
 	}
 
 	public int [][]getMarea() {
@@ -191,12 +193,9 @@ public class Sitio {
 		return altura;
 	}
 
-	
-	
 	public GeoLocalizacion getGeo() {
 		return geo;
 	}
-
 
 	public String getCodigoAemet() {
 		return codigoAemet;

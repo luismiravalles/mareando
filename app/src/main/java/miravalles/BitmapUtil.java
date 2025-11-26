@@ -52,9 +52,6 @@ public class BitmapUtil {
 	 */
 	public static int getAltoReal(Bitmap bitmap, int anchoDisplay) {
 		double ratio=(double)anchoDisplay / (double)bitmap.getWidth();
-		Log.i("M", "anchoDisplay=" + anchoDisplay);
-		Log.i("M" ,"bitmapWidth=" + bitmap.getWidth());
-		Log.i("M", "ratio=" + ratio);
 		return (int)(bitmap.getHeight() * ratio);
 	}
 

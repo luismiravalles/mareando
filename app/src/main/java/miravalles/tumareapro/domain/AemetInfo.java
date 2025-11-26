@@ -154,7 +154,6 @@ public class AemetInfo {
 	public void createDatos(GregorianCalendar periodo) {
 		String formateado=sdf.format(periodo.getTime());
 		if(datos.get(formateado)==null) {
-			Log.i("D", "Creado datos para " + formateado);
 			datos.put(formateado, new Datos());
 		}
 	}

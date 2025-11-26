@@ -26,6 +26,9 @@ import android.graphics.Shader.TileMode;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.text.Layout;
+import android.text.StaticLayout;
+import android.text.TextPaint;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -213,8 +216,8 @@ public class GraficoActual extends View {
 			if(textoError!=null) {
 				texto=textoError;
 			}
-			Snackbar.make(this, texto, Snackbar.LENGTH_SHORT).show();
-			// pintarTextoDialogo(canvas, texto);
+			// Snackbar.make(this, texto, Snackbar.LENGTH_SHORT).show();
+			pintarTextoDialogo(canvas, texto);
 			return;
 		}
 		pintarTexto(canvas, rectCielo, rect);
@@ -496,7 +499,7 @@ public class GraficoActual extends View {
 
 		// --- 2️⃣ Cuadro de "diálogo" ---
 		int dialogWidth = width * 3 / 4;
-		int dialogHeight = height / 5;
+		int dialogHeight = height / 4;
 
 		int left = (width - dialogWidth) / 2;
 		int top = (height - dialogHeight) / 2;
@@ -505,7 +508,7 @@ public class GraficoActual extends View {
 
 		// Fondo blanco del diálogo
 		Paint paintDialog = new Paint();
-		paintDialog.setColor(Color.CYAN);
+		paintDialog.setColor(Estilo.COLOR_FONDO_INFO);
 		paintDialog.setStyle(Paint.Style.FILL);
 		paintDialog.setAntiAlias(true);
 		canvas.drawRoundRect(
@@ -526,19 +529,29 @@ public class GraficoActual extends View {
 				borde
 		);
 
-		Paint textoPaint = new Paint();
-		textoPaint.setColor(Color.BLACK);
+		TextPaint textoPaint = new TextPaint();
+		textoPaint.setColor(Estilo.COLOR_ACTUAL);
 		textoPaint.setTextSize(48);
 		textoPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
 		textoPaint.setTextAlign(Paint.Align.CENTER);
 		textoPaint.setAntiAlias(true);
-
 		// Calcular posición vertical centrada
 		Paint.FontMetrics metrics = textoPaint.getFontMetrics();
 		float textHeight = metrics.bottom - metrics.top;
-		float textBase = top + (dialogHeight / 2f) + (textHeight / 4f);
+		float textBase = top + (dialogHeight / 6f) + (textHeight / 4f);
 
-		canvas.drawText(texto, width / 2f, textBase, textoPaint);
+		canvas.save();
+		StaticLayout sl=new StaticLayout(
+				texto, textoPaint, dialogWidth,
+				Layout.Alignment.ALIGN_NORMAL,
+				1.0f, 0.0f, false);
+		canvas.translate(width/2f, textBase);
+		sl.draw(canvas);
+		canvas.restore();
+
+
+
+		// canvas.drawText(texto, width / 2f, textBase, textoPaint);
 	}
 
 	private void pintarLeyenda(Canvas canvas, int valor, int yTexto, String texto, int color) {

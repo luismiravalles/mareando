@@ -37,9 +37,7 @@ public class MareaInfo {
 		this.hora=hora;
 		Calendar cal=Calendar.getInstance();
 		cal.setTime(hora);
-		Log.i("X", "Latitud=" + geo.y());
-		Log.i("X", "Longitud=" + geo.x());
-		this.orto=SunriseSunsetCalculator.getSunrise(geo.y(), geo.x(), 
+		this.orto=SunriseSunsetCalculator.getSunrise(geo.y(), geo.x(),
 				TimeZone.getDefault(), cal, 0.0);
 		this.ocaso=SunriseSunsetCalculator.getSunset(geo.y(), geo.x(), 
 				TimeZone.getDefault(), cal, 0.0);

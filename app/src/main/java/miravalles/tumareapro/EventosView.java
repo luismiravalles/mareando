@@ -112,8 +112,9 @@ public class EventosView extends View {
 		pintarEventoAnterior(canvas);
 		pintarEventoSiguiente(canvas);
 		*/
-
-		pintarEstadoActual(canvas);
+		if(info.anterior!=null && info.siguiente!=null) {
+			pintarEstadoActual(canvas);
+		}
 	}
 	
 

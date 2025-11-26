@@ -455,10 +455,7 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
     			((longitud - mapa.getMinLongitud()) / rangoLongitud)
     					*
     			anchoScreenMapa;
-    	Log.i("M", "altoMapa=" + altoMapa);
-    	Log.i("M", "latitudRelativa=" + latitudRelativa);
-    	Log.i("M", "rangoLatitud=" + rangoLatitud);
-    	double latitudScreen = (latitudRelativa / rangoLatitud ) * altoMapa;	    			
+    	double latitudScreen = (latitudRelativa / rangoLatitud ) * altoMapa;
     	
     	// Hay que ajustar restando el ancho y alto de la imagen del punto gordo
     	latitudScreen += 4;
@@ -469,7 +466,7 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
     	int x=(int)longitudScreen;
     	int y=(int)altoMapa - (int)latitudScreen;
     	lp.setMargins(x,y, 0,0); 
-    	Log.i("M", "apuntador: " + x+ " , " + y);   	
+
     	apuntador.setLayoutParams(lp);    	
     	
     	int yScroll=altoMapa - (int)latitudScreen - (scrollMapa.getLayoutParams().height / 2);
@@ -491,7 +488,7 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 //    	scrollMapa.smoothScrollTo(0, yScroll);
 //    	scrollMapa.setScrollY(yScroll);
     	
-    	Log.i("S", "Scroll: " + yScroll);
+
 	}
 
 
@@ -774,7 +771,7 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 				year, month, day
 		);
 		datePickerDialog.getDatePicker().setMinDate(calendar.getTimeInMillis());
-		calendar.add(Calendar.YEAR, 1);
+		calendar.add(Calendar.MONTH, 11);
 		datePickerDialog.getDatePicker().setMaxDate(calendar.getTimeInMillis());
 		datePickerDialog.show();
 	}

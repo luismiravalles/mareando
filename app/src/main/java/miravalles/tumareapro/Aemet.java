@@ -67,7 +67,7 @@ public class Aemet {
 		ConnectivityManager check = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo[] netInfo=check.getAllNetworkInfo();
 		boolean conectado=false;
-		Log.i("X", "Verificando red...");
+		Log.i("AEMET", "Verificando red...");
 		for(int i=0; i<netInfo.length; i++) {
 			if(netInfo[i].getState()==NetworkInfo.State.CONNECTED) {
 				conectado=true;
@@ -78,7 +78,7 @@ public class Aemet {
 		if(conectado==false) {
 			return null;
 		}
-		Log.i("X", "Verificada");
+		Log.i("AEMET", "Verificada");
 		try {
 			AemetInfo info=new AemetInfo();
 			URL url=new URL(BASE_URL + codigo + SUFIJO);
@@ -91,17 +91,15 @@ public class Aemet {
 			parser.setInput(is, null);
 			parser.nextTag();
 			parser.require(XmlPullParser.START_TAG, null, "playa");
-			Log.i("A","Parseando...");
 			int tipo;
 			while(( tipo=parser.next()) != XmlPullParser.END_DOCUMENT) {
 				String name=parser.getName();
 				if(name==null || tipo!=XmlPullParser.START_TAG) {
 					continue;
 				}
-				Log.i("A", "name=" + name);
+
 				if(name.equals("nombre")) {					
 					if(parser.next()==XmlPullParser.TEXT){
-						Log.i("X", "TEXT de Nombre ");
 						info.setNombre(parser.getText());
 					}
 				}
@@ -110,7 +108,6 @@ public class Aemet {
 				}
 				if(name.equals("t_agua") && info.getTemperaturaAgua()==null) {
 					info.setTemperaturaAgua(parser.getAttributeValue(null, "valor1"));	
-					Log.i("A","Encontrada temperatura agua " + info.getTemperaturaAgua());
 				}
 				if(name.equals("viento")&& info.getViento()==null) {
 					info.setViento(parser.getAttributeValue(null, "descripcion1"));
@@ -122,7 +119,6 @@ public class Aemet {
 					info.setCielo(parser.getAttributeValue(null, "descripcion1"));
 				}				
 			}
-			Log.i("A","Fin parseando...");
 			is.close();
 			obtenerDatosMunicipio(info, codigo);
 			cache.put(codigo, info);
@@ -148,7 +144,6 @@ public class Aemet {
 		parser.setInput(is, null);
 		parser.nextTag();
 		parser.require(XmlPullParser.START_TAG, null, "root");
-		Log.i("A","Parseando..." + url);
 		int tipo;
 		GregorianCalendar dia=new GregorianCalendar();
 		GregorianCalendar periodo=null;
@@ -161,7 +156,6 @@ public class Aemet {
 
 			if(name.equals("dia")) {
 				String fecha=parser.getAttributeValue(null,"fecha");
-				Log.i("A", "<dia fecha " + fecha);
 				String []partes=fecha.split("-");
 				dia.set(Calendar.YEAR, Integer.parseInt(partes[0]));
 				dia.set(Calendar.MONTH, Integer.parseInt(partes[1]) - 1);
@@ -170,19 +164,16 @@ public class Aemet {
 			if(name.equals("viento")) {
 				periodo=getPeriodo(dia, parser);
 				info.createDatos(periodo);
-				Log.i("A", "<viento periodo " + periodo.getTime());
 			}
 			if(name.equals("direccion")) {
 				if(parser.next()==XmlPullParser.TEXT){
 					info.getDatos(periodo).setDireccionViento(parser.getText());
-					Log.i("A", "<direccion  " + parser.getText());
-				}				
+				}
 			}
 			if(name.equals("velocidad")) {
 				if(parser.next()==XmlPullParser.TEXT){
 					info.getDatos(periodo).setVelocidadViento(parser.getText());
-					Log.i("A", "<velocidad  " + parser.getText());
-				}				
+				}
 			}
 			if(name.equals("estado_cielo")) {
 				periodo=getPeriodo(dia, parser);
@@ -190,9 +181,9 @@ public class Aemet {
 				info.getDatos(periodo).setCielo(parser.getAttributeValue(null,"descripcion"));
 			}
 		}
-		Log.i("A","Fin parseando...");
+		Log.i("AEMET","Fin parseando...");
 		is.close();
-	}	
+	}
 	
 	private static GregorianCalendar getPeriodo(GregorianCalendar dia, XmlPullParser parser) {
 		String periodo=parser.getAttributeValue(null, "periodo");
