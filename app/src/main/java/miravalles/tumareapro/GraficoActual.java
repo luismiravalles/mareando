@@ -531,7 +531,7 @@ public class GraficoActual extends View {
 
 		TextPaint textoPaint = new TextPaint();
 		textoPaint.setColor(Estilo.COLOR_ACTUAL);
-		textoPaint.setTextSize(48);
+		textoPaint.setTextSize(36);
 		textoPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
 		textoPaint.setTextAlign(Paint.Align.CENTER);
 		textoPaint.setAntiAlias(true);

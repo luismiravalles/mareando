@@ -34,11 +34,9 @@ public class Modelo {
 	private static Modelo modelo;
 	private TuMareaActivity contexto;
 
-	
 	public static final int SIN_DATOS=-20000;
 												// indicador de que un sitio no tiene			
 											    // datos con desfase
-
 	private Sitio []sitios=null;
 
 	/**
@@ -47,24 +45,14 @@ public class Modelo {
 	private int [][][]coeficientes;
 	// Para saber si los tengo que recargar...
 
-			
-
-	
-	
-	
-	
 	public static Modelo crearModelo(TuMareaActivity contexto) {
 		modelo=new Modelo(contexto);		
 		return modelo;
 	}
-			
-	
+
 	public Modelo(TuMareaActivity contexto) {
 		sitios=new Spain().getSitios(contexto);
 		this.contexto=contexto;
-		
-		cargarSitiosDeUsuario(contexto);
-		cargarFotos();		
 	}
 	
 	public boolean existeFecha(Date fecha) {
@@ -391,8 +379,6 @@ public class Modelo {
 		return modelo;
 	}
 	
-
-	
 	public int buscarSitioPorNombre(String nombre) {
 		for(int i=0; i<sitios.length; i++) {
 			if(sitios[i].nombre.equals(nombre)) {
@@ -401,7 +387,6 @@ public class Modelo {
 		}
 		return -1;
 	}
-	
 	
 	public int buscarSitioPorPosicion(GeoLocalizacion geo) {
 		double min=10000;
@@ -434,9 +419,7 @@ public class Modelo {
 		}
 		return result;
 	}
-	
-	
-	
+
 	public List<Sitio> getListaSitiosAlfa() {
 	
 		List<Sitio> sitiosAlfa=new ArrayList<Sitio>(
@@ -462,33 +445,6 @@ public class Modelo {
 		return 0;
 	}
 
-	public void addFoto(int sitio, int altura) {
-		sitios[sitio].fotos.add(new Foto(altura));		
-	}
-	
-
-	public void cargarFotos() {
-		File dir=contexto.getDirectorioImagenes();
-		File[] ficheros=dir.listFiles();
-		if(ficheros!=null) {
-			for(File fichero:ficheros) {
-				String p[]=fichero.getName().split("[-\\.]");
-				if(p.length>=2) {
-					int sitio=getSitio(p[0]);
-					try {
-						int altura=Integer.parseInt(p[1]);
-						if(sitio>=0) {
-							addFoto(sitio, altura);
-						}
-					} catch(NumberFormatException e) {
-						// No pasa nada, era que la foto se llamar�a 
-						// por ejemplo cudillero-rar y no nos interesa.
-					}
-				}
-			}
-		}
-	}
-	
 	public int getSitio(String nombreNormalizado) {
 		for(int i=0; i<sitios.length; i++) {
 			if(nombreNormalizado.equals(sitios[i].getNombreNormalizado())) {
@@ -531,41 +487,7 @@ public class Modelo {
 		nuevaMatriz[sitios.length]=nuevo;
 		sitios=nuevaMatriz;
 	}	
-	
-	public void cargarSitiosDeUsuario(Context contexto) {
-		SharedPreferences pref=PreferenceManager.getDefaultSharedPreferences(contexto);
-		int n=pref.getInt("numSitios", 0);
-		Sitio []nuevaMatriz=new Sitio[sitios.length+n];
-		for(int i=0; i<sitios.length; i++) {
-			nuevaMatriz[i]=sitios[i];
-		}
-		for(int i=0; i<n; i++) {
-			String saved=pref.getString("sitio" + i, "");
-			String campos[]=saved.split("[;:]");
-			
-			GeoLocalizacion geo=new GeoLocalizacion(
-					   Double.parseDouble(campos[2]), 
-					   Double.parseDouble(campos[3]));
-			Sitio referencia=			
-					buscarReferenciaPorPosicion(geo);
-			
-			String equivalente=referencia.getNombreNormalizado();
-			if(referencia.getEquivalente()!=null) {
-				equivalente=referencia.getEquivalente();
-			}
-			int desfase=referencia.desfase;
-			int ajustePleamar=referencia.ajustePleamar;
-			int ajusteBajamar=referencia.ajusteBajamar;
-						
-			Sitio nuevo=new Sitio(
-					campos[0], equivalente, referencia.getCodigoAemet(),  geo , desfase, ajustePleamar, ajusteBajamar);
-			nuevo.deUsuario=true;
-			nuevaMatriz[sitios.length+i]=nuevo;
-			Log.i("X", "Cargando sitio de usuario :" + saved);
-		}
-		sitios=nuevaMatriz;
-	}
-	
+
 	public void guardarSitiosDeUsuario(Context contexto) {
     	SharedPreferences pref=PreferenceManager.getDefaultSharedPreferences(contexto);
     	Editor edit=pref.edit();

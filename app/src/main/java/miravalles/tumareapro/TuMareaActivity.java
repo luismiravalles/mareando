@@ -170,6 +170,8 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 	@Override
     public void onCreate(Bundle savedInstanceState) {
 
+		modelo=Modelo.crearModelo(this);
+
 		fontAwesome= ResourcesCompat.getFont(this, R.font.fontawesome);
 		AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
     	
@@ -183,9 +185,7 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 		
     	cargarPreferencias();
     	verificarZonaHoraria();
-    	
-    	modelo=Modelo.crearModelo(this);
-    	
+
     	initDimensiones();
 
     	Sizer sizer=new Sizer();

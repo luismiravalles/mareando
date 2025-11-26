@@ -26,6 +26,7 @@ public class Configuracion {
 
     public static String getUrlInstituto() {
         return mFirebaseRemoteConfig.getString(PROP_URL_INSTITUTO);
+        // return "https://patatin.macetero.org/datos/patatan";
         // return "https://tumarea.macetero.org/datos/${id}/${month}.xml";
     }
 

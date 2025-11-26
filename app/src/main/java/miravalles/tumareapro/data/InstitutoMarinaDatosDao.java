@@ -143,8 +143,10 @@ public class InstitutoMarinaDatosDao implements DatosDao {
             return "Problemas de conexión de red. No hay red.";
         }
         Log.i("X", "Verificada");
+        String stUrl=componerUrl(sitio, anoMes);
+
         try {
-            URL url = new URL(componerUrl(sitio, anoMes));
+            URL url= new URL(stUrl);
             Log.i("X", "Descargando de " + url);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
@@ -163,7 +165,9 @@ public class InstitutoMarinaDatosDao implements DatosDao {
         } catch(Exception e) {
             Log.e("X", e.getMessage());
             return "No se pudo conectar con\n Instituto Hidrográfico de la Marina " +
-                    "\n para obtener los datos de " + sitio.nombre + " " + anoMes;
+                    "\n para obtener los datos de " + sitio.nombre + " " + anoMes +
+                    "\n " + e.getMessage() +
+                    "\n" + stUrl;
 
         }
         return null;
