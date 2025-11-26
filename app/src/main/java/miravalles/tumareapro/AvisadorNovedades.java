@@ -55,9 +55,10 @@ public class AvisadorNovedades {
                 // 2. Obtenemos la fecha guardada en la app (0 si es la primera vez)
                 SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
                 long localLastModified = prefs.getLong(KEY_LAST_MODIFIED, 0);
-
+                Log.i("Avisador", "Comparando: " + serverLastModified + " <=> " + localLastModified);
                 // 3. Comparamos
                 if (serverLastModified > localLastModified) {
+
                     // 4. Volvemos al hilo principal para mostrar la alerta
                     handler.post(() -> {
                         mostrarDialogoHTML(context, getUrl(context));
@@ -79,6 +80,7 @@ public class AvisadorNovedades {
     private void mostrarDialogoHTML(Context context, String url) {
         // Usamos un WebView para renderizar el HTML correctamente
         WebView webView = new WebView(context);
+        webView.clearCache(true);
         webView.loadUrl(url);
 
         new AlertDialog.Builder(context)

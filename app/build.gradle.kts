@@ -37,8 +37,9 @@ android {
         applicationId = "miravalles.mareame"
         minSdk = 24
         targetSdk = 35
-        versionCode = 41
-        versionName = "2026-2"
+
+        versionCode = 42
+        versionName = "2026-3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

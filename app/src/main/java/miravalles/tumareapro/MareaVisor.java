@@ -8,6 +8,7 @@ import java.util.GregorianCalendar;
 import miravalles.tumareapro.domain.AemetInfo;
 import miravalles.tumareapro.domain.Foto;
 import miravalles.tumareapro.domain.Sitio;
+import miravalles.tumareapro.vo.AnoMes;
 
 import android.app.Activity;
 import android.content.Context;
@@ -97,7 +98,8 @@ public class MareaVisor  implements AemetListener {
 		new Handler(Looper.getMainLooper()).post(() -> {
 			actualizarDatos(viewRaiz, indiceSitio);
 			if(primeraVez) {
-				contexto.animarMarea();
+				// Me parece que se arma un lio.
+				// contexto.animarMarea();
 				primeraVez=false;
 			}
 		});
@@ -110,7 +112,7 @@ public class MareaVisor  implements AemetListener {
 		int ano=gc.get(Calendar.YEAR);
 
 		Sitio sitio=modelo.getSitio(indiceSitio);
-		sitio.cargarDatos(viewRaiz.getContext(), ano, mes, this::actualizarEnUiThread);
+		sitio.cargarDatos(viewRaiz.getContext(), new AnoMes(ano, mes), this::actualizarEnUiThread);
 		modelo.cargarCoeficientes(viewRaiz.getContext(), ano, this::actualizarEnUiThread);
 		AemetInfo aemetInfo=Aemet.getCache(sitio.getCodigoAemet());
 		if(aemetInfo==null) {

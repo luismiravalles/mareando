@@ -23,7 +23,9 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import miravalles.tumareapro.Util;
+import miravalles.tumareapro.domain.Configuracion;
 import miravalles.tumareapro.domain.Sitio;
+import miravalles.tumareapro.vo.AnoMes;
 
 /**
  * Clase que se encarga de descargar y persistir localmente la información de las
@@ -35,28 +37,25 @@ import miravalles.tumareapro.domain.Sitio;
  */
 public class InstitutoMarinaDatosDao implements DatosDao {
 
-    public static final String URL_BASE="https://ideihm.covam.es/api-ihm/getmarea?request=gettide";
-
     Context context;
-
 
     public InstitutoMarinaDatosDao(Context context) {
         this.context=context;
     }
 
-    public void obtenerDatosMes(Sitio sitio, int ano, int mes) {
-        Log.i("X", "Obtener datos de " + sitio.nombre + " mes " + mes);
-        if(hayDatosLocales(sitio, ano, mes)) {
-            cargarDatosLocales(sitio, ano, mes);
+    public void obtenerDatosMes(Sitio sitio, AnoMes anoMes) {
+        Log.i("X", "Obtener datos de " + sitio.nombre +  " " + anoMes);
+        if(hayDatosLocales(sitio, anoMes)) {
+            cargarDatosLocales(sitio, anoMes);
             return;
         }
-        sitio.setErrorInstitutoMarina(mes, descargarDatosRemotos(sitio, ano, mes));
-        cargarDatosLocales(sitio, ano, mes);
+        sitio.setErrorInstitutoMarina(anoMes.getMes(), descargarDatosRemotos(sitio, anoMes));
+        cargarDatosLocales(sitio, anoMes);
     }
 
-    private void cargarDatosLocales(Sitio sitio, int ano, int mes) {
-        Log.i("X", "Datos Locales de " + sitio.nombre + " mes " + mes);
-        File fichero=getFileLocal(sitio, ano, mes);
+    private void cargarDatosLocales(Sitio sitio, AnoMes anoMes) {
+        Log.i("X", "Datos Locales de " + sitio.nombre + " " + anoMes);
+        File fichero=getFileLocal(sitio, anoMes);
         try(InputStream in=new FileInputStream(fichero)) {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
@@ -70,7 +69,7 @@ public class InstitutoMarinaDatosDao implements DatosDao {
                 String fecha=marea.getAttribute("fecha");
                 String hora=marea.getAttribute("hora");
                 String altura=marea.getAttribute("altura");
-                guardarEnSitio(sitio, mes, fecha, hora, altura);
+                guardarEnSitio(sitio, anoMes.getMes(), fecha, hora, altura);
             }
         } catch(Exception e) {
             // Cualquier error parseando el fichero debe implicar que lo
@@ -118,18 +117,18 @@ public class InstitutoMarinaDatosDao implements DatosDao {
         return Integer.parseInt(fecha.substring(8));
     }
 
-    private File getFileLocal(Sitio sitio, int ano, int mes) {
-        String nombreLocal=componerNombreLocal(sitio, ano, mes);
+    private File getFileLocal(Sitio sitio, AnoMes anoMes) {
+        String nombreLocal=componerNombreLocal(sitio, anoMes);
         return new File(context.getFilesDir(), nombreLocal);
     }
 
-    private boolean hayDatosLocales(Sitio sitio, int ano, int mes) {
-        File fichero=getFileLocal(sitio, ano, mes);
+    private boolean hayDatosLocales(Sitio sitio, AnoMes anoMes) {
+        File fichero=getFileLocal(sitio, anoMes);
         return fichero.exists() && fichero.length()>0;
     }
 
-    private String descargarDatosRemotos(Sitio sitio, int ano, int mes) {
-        Log.i("INTERNET", "Descargando datos remotos de " + sitio.nombre + " mes " + mes);
+    private String descargarDatosRemotos(Sitio sitio, AnoMes anoMes) {
+        Log.i("INTERNET", "Descargando datos remotos de " + sitio.nombre + " " + anoMes);
         ConnectivityManager check = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo[] netInfo=check.getAllNetworkInfo();
         boolean conectado=false;
@@ -145,11 +144,12 @@ public class InstitutoMarinaDatosDao implements DatosDao {
         }
         Log.i("X", "Verificada");
         try {
-            URL url = new URL(componerUrl(sitio, ano,  mes));
+            URL url = new URL(componerUrl(sitio, anoMes));
             Log.i("X", "Descargando de " + url);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
             conn.connect();
-            File ficheroLocal=getFileLocal(sitio, ano, mes);
+            File ficheroLocal=getFileLocal(sitio, anoMes);
             try(
                 InputStream in = conn.getInputStream();
                 OutputStream out= new FileOutputStream(ficheroLocal);
@@ -162,18 +162,18 @@ public class InstitutoMarinaDatosDao implements DatosDao {
             }
         } catch(Exception e) {
             Log.e("X", e.getMessage());
-            return "No se pudo conectar con Instituto Hidrográfico de la Marina " +
-                    " para obtener los datos de " + sitio.nombre + " " + ano + "-" + (mes+1);
+            return "No se pudo conectar con\n Instituto Hidrográfico de la Marina " +
+                    "\n para obtener los datos de " + sitio.nombre + " " + anoMes;
 
         }
         return null;
     }
 
 
-    private String componerNombreLocal(Sitio sitio, int ano, int mes) {
+    private String componerNombreLocal(Sitio sitio, AnoMes anoMes) {
         return "datos_IHM_" + sitio.getIdIHM()
                 + "_"
-                +  ano + String.format("%02d", mes);
+                +  anoMes.getAno() + String.format("%02d", anoMes.getMes());
     }
 
     /**
@@ -188,11 +188,11 @@ public class InstitutoMarinaDatosDao implements DatosDao {
         }
         return year;
     }
-    private String componerUrl(Sitio sitio, int ano, int mes) {
-        return URL_BASE
-                + "&id=" + sitio.getIdIHM()
-                + "&format=xml"
-                + "&month=" + ano + String.format("%02d", (mes+1));
+    private String componerUrl(Sitio sitio, AnoMes anoMes) {
+        return Configuracion.getUrlInstituto()
+                .replace("${id}",Integer.toString(sitio.getIdIHM()))
+                .replace("${format}", "xml")
+                .replace("${month}", "" + anoMes.getAno() + String.format("%02d", (anoMes.getMes()+1)));
     }
 
 }

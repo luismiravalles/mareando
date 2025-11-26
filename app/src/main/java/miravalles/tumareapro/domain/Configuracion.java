@@ -13,12 +13,20 @@ public class Configuracion {
 
     private static final String URL_MACETERO = "https://tumarea.macetero.org/";
 
+    private static final String URL_INSTITUTO = "https://ideihm.covam.es/api-ihm/getmarea?request=gettide&id=${id}&format=${format}&month=${month}";
+
     private static final String PROP_URL_MACETERO ="url_macetero";
+    private static final String PROP_URL_INSTITUTO="url_instituto";
 
     private static FirebaseRemoteConfig mFirebaseRemoteConfig;
 
     public static String getUrlMacetero(String path)  {
         return mFirebaseRemoteConfig.getString(PROP_URL_MACETERO) + path;
+    }
+
+    public static String getUrlInstituto() {
+        return mFirebaseRemoteConfig.getString(PROP_URL_INSTITUTO);
+        // return "https://tumarea.macetero.org/datos/${id}/${month}.xml";
     }
 
     public static void setupRemoteConfig() {
@@ -37,6 +45,7 @@ public class Configuracion {
         // Si Firebase no está disponible, este valor será usado.
         Map<String, Object> defaultMap = new HashMap<>();
         defaultMap.put(PROP_URL_MACETERO, URL_MACETERO);
+        defaultMap.put(PROP_URL_INSTITUTO, URL_INSTITUTO);
         mFirebaseRemoteConfig.setDefaultsAsync(defaultMap);
     }
 
