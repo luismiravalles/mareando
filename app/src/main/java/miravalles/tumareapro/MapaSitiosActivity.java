@@ -69,6 +69,9 @@ public class MapaSitiosActivity extends Activity {
             marker.setTitle(sitio.nombre);
             marker.setPosition(punto);
             marker.setId(Integer.toString(i));
+            if(indiceSitio==i) {
+                marker.setIcon(getDrawable(R.drawable.apuntador));
+            }
             map.getOverlays().add(marker);
             marker.setOnMarkerClickListener((m,v) -> {
                 mostrarDialogoPunto(m);

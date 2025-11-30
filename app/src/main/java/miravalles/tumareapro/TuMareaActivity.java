@@ -11,6 +11,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -18,8 +19,11 @@ import java.util.concurrent.Executors;
 import miravalles.BitmapUtil;
 import miravalles.tumareapro.domain.Configuracion;
 import miravalles.tumareapro.domain.Foto;
+import miravalles.tumareapro.domain.Sitio;
 import miravalles.tumareapro.vo.GeoLocalizacion;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.app.AlertDialog;
 import android.app.ComponentCaller;
@@ -130,8 +134,14 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 
 	Sizer sizer=new Sizer();
 
+	private boolean fechaCambiada=false;
 
+	/**
+	 * Para que al pulsar rápido no se atasquen algunos botones.
+	 */
+	private ExecutorService buttonExecutor=Executors.newSingleThreadExecutor();
 
+	private CountDownLatch bloqueador=null;
 
 	ActivityResultLauncher<Intent> mapaLauncher=registerForActivityResult(
 			new ActivityResultContracts.StartActivityForResult(),
@@ -271,12 +281,18 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
     }
 
 	private void crearBotones() {
-		crearBoton(botonera, "Tabla", "\uf0ce",  v -> mostrarTablaMareas()) ;
-		crearBoton(botonera, "Mapa", "\uf279" , v-> mostrarMapaSitios());
-		crearBoton(botonera, "Acerca de", "\uf059", v -> acercaDe());
+
+		// Reloj=f017
+		crearBoton(botonera, 12, "-12h", "\uf30a",  v -> menos12()) ;
+		crearBoton(botonera, 12, "+12h", "\uf30b",  v -> mas12()) ;
+		crearBoton(botonera,25, "Tabla", "\uf0ce",  v -> mostrarTablaMareas()) ;
+		crearBoton(botonera, 25,"Mapa", "\uf279" , v-> mostrarMapaSitios());
+		// crearBoton(botonera, numBotones,"Acerca de", "\uf059", v -> acercaDe());
+		crearBoton(botonera, 25, "AEMET", "\uf72e", v-> abrirAemet());
+
 	}
 
-	public void crearBoton(LinearLayout raiz,  String texto, String textIcon, OnClickListener l) {
+	public void crearBoton(LinearLayout raiz,  final int peso, String texto, String textIcon, OnClickListener l) {
 		LinearLayout llBoton=new LinearLayout(this);
 		llBoton.setClickable(true);
 
@@ -286,7 +302,7 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 		// Asignarlo como fondo
 		llBoton.setBackgroundResource(outValue.resourceId);
 
-		sizer.set(llBoton).fillHeight().pctWidth(33);
+		sizer.set(llBoton).fillHeight().pctWidth(peso);
 		llBoton.setPadding(10, 10 , 10, 10);
 		llBoton.setOrientation(LinearLayout.VERTICAL);
 
@@ -316,19 +332,61 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 		raiz.addView(llBoton);
 	}
 
-	public void animarMarea() {
-		long antes=this.getFechaVista().getTime() - 2 * 60 * 60 * 1000;
-		ValueAnimator animator=ValueAnimator.ofFloat(antes, this.getFechaVista().getTime());
-		animator.setDuration(2 * 1000);
+	public void animarMarea(long horasAnimadas) {
+		bloqueador=new CountDownLatch(1);
+		int desde= (int) (this.getFechaVista().getTime()/1000 + horasAnimadas * 60 * 60);
+		ValueAnimator animator=ValueAnimator.ofInt(desde,
+				(int)(this.getFechaVista().getTime()/1000));
+		animator.setDuration(1 * 1000);
 		animator.addUpdateListener(v -> {
 			this.getFechaVista().setTime(
-						((Float)v.getAnimatedValue()).longValue());
+					((Integer)v.getAnimatedValue()).longValue() * 1000);
 			mareaVisor.refresh();
+		});
+		animator.addListener(new AnimatorListenerAdapter() {
+			@Override
+			public void onAnimationEnd(Animator animation) {
+				bloqueador.countDown();
+			}
 		});
 		new Handler(Looper.getMainLooper()).post(() -> {
 			animator.start();
 		});
 
+	}
+
+
+	private void abrirAemet() {
+		Sitio sitio=Modelo.get().getSitio(getIndiceSitio());
+		String codigoAemet=sitio.getCodigoAemet();
+		if(codigoAemet!=null) {
+			codigoAemet = codigoAemet.substring(0, 2);
+		} else {
+			codigoAemet = "33"; // Si no hay código pues cogemos Asturias.
+		}
+		String area="can1";
+		switch(codigoAemet) {
+			case "27":
+			case "15":
+			case "36":
+				area="gal1";
+				break;
+			case "21":
+			case "11":
+			case "29":
+			case "41":
+			case "51":
+			case "52":
+				area="and1";
+				break;
+			case "35":
+			case "38":
+				area="coo1";
+				break;
+		}
+		String pagina="https://www.aemet.es/es/eltiempo/prediccion/maritima?opc1=0&opc3=0&area=${area}&opc2=marvto";
+		pagina=pagina.replace("${area}", area);
+		Util.mostrarAviso(TuMareaActivity.this, pagina);
 	}
 
 	private void prepararCabecera() {
@@ -359,7 +417,7 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
     @Override
     public void onResume() {
     	Log.d("T","On Resume");
-		if(fechaVista==null) {
+		if(fechaVista==null || !fechaCambiada) {
 			fechaVista=new Date();
 		}
     	super.onResume();
@@ -547,6 +605,29 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 		} else {
 			Util.mostrarAviso(TuMareaActivity.this, "masdatos" );
 		}
+	}
+
+	private void menos12() {
+		sumarHoras(-12);
+	}
+
+	private void sumarHoras(int suma) {
+		buttonExecutor.submit(() -> {
+			try {
+				if(bloqueador!=null) {
+					bloqueador.await();
+				}
+				Long destino = this.getFechaVista().getTime() + suma * 60 * 60 * 1000;
+				this.getFechaVista().setTime(destino);
+				animarMarea(-suma);
+			} catch(InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+		});
+	}
+
+	private void mas12() {
+		sumarHoras(12);
 	}
 
 	private void mostrarTablaMareas() {
@@ -766,6 +847,7 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 					Date fechaElegida = cal.getTime();
 					cambiarFecha(getIndiceSitio(), fechaElegida);
 					Log.i("X", "Elegida fecha " + fechaElegida);
+					fechaCambiada=true;
 
 				},
 				year, month, day

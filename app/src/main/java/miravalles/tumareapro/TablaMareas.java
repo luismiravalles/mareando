@@ -17,6 +17,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.core.view.WindowCompat;
 
 public class TablaMareas extends AppCompatActivity {
 	
@@ -31,8 +32,13 @@ public class TablaMareas extends AppCompatActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		// Según ChatGpt esto evita que machaquemos la barra de estado de arriba.
+		WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
+
 		setContentView(R.layout.tabla_mareas);
 		fontAwesome=ResourcesCompat.getFont(this, R.font.fontawesome);
+
+
 		cargar();
 	}
 

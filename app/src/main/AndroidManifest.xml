@@ -33,7 +33,9 @@
             android:theme="@style/Theme.AppCompat.DayNight.NoActionBar"
             android:screenOrientation="portrait"
             />
-        <activity android:name="miravalles.tumareapro.AvisoActivity" />
+        <activity android:name="miravalles.tumareapro.AvisoActivity"
+            android:theme="@style/Theme.MareaMe"
+            />
 
         <activity android:name="miravalles.tumareapro.MapaSitiosActivity" />
 

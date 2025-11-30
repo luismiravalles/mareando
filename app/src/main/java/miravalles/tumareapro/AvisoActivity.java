@@ -7,6 +7,8 @@ import android.widget.LinearLayout;
 import android.widget.TableLayout.LayoutParams;
 import android.widget.Toast;
 
+import androidx.core.view.WindowCompat;
+
 public class AvisoActivity extends Activity  {
 	
 	WebView vista;
@@ -15,15 +17,14 @@ public class AvisoActivity extends Activity  {
 	protected void onCreate(Bundle savedInstanceState) {		
 		super.onCreate(savedInstanceState);
 		String aviso=(String)getIntent().getExtras().get("aviso");
-		
-		vista=new WebView(this);
-		LinearLayout.LayoutParams lp=
-				new LinearLayout.LayoutParams(
-						LayoutParams.FILL_PARENT, 
-						LayoutParams.FILL_PARENT);
-		vista.setLayoutParams(lp);
-		setContentView(vista);
+		setContentView(R.layout.aviso_layout);
+
+		// Según ChatGpt esto evita que machaquemos la barra de estado de arriba.
+		WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
+
+		vista=findViewById(R.id.avisoView);
 		vista.getSettings().setAllowFileAccess(true);
+		vista.getSettings().setJavaScriptEnabled(true);
 		if(aviso.startsWith("http")) {
 			vista.loadUrl(aviso);
 		} else {
