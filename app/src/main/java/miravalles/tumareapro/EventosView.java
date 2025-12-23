@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.DashPathEffect;
 import android.graphics.LinearGradient;
 import android.graphics.Matrix;
 import android.graphics.Paint;
@@ -80,7 +81,7 @@ public class EventosView extends View {
 	
 
 	public int getTextSize() {
-		return height / 8;
+		return height / 10;
 	}
 	
 	public int getMargenIzquierdo() {
@@ -96,7 +97,13 @@ public class EventosView extends View {
 		}
 		pintarFondoTransicion(canvas);
 
+
+
 		if(info.anterior!=null && info.siguiente!=null) {
+
+			if(infoSiguiente !=null) {
+				pintarMarcas(canvas, info.anterior, infoSiguiente.siguiente);
+			}
 			pintarOnda(canvas,info.getIntAlturaAnterior()-info.getIntAlturaSiguiente());
 			pintarPuntoActual(canvas);
 			pintarEvento(canvas, info.getHoraAnterior(), info.getNombreAnterior(), -1 );
@@ -116,7 +123,96 @@ public class EventosView extends View {
 			pintarEstadoActual(canvas);
 		}
 	}
-	
+
+	private void pintarMarcas(Canvas canvas, Date desde, Date hasta) {
+		int amplitudMinutos=distanciaMinutos(desde, hasta);
+		float w = anchoOnda();
+		float ratioPixelMinuto = anchoOnda() / (float)amplitudMinutos;
+
+		Paint paintTexto=paintBasico();
+		paintTexto.setTextSize(getTextSize() * 2f / 3f);
+		paintTexto.setTextAlign(Align.CENTER);
+		paintTexto.setColor(Estilo.COLOR_LINEA);
+
+		/**
+		 * La posicion inicial es la misma que la onda, pero hay que empezar
+		 * a pintar desde la hora siguiente y por tanto vamos a considerar xini
+		 * como el punto donde se pintaria la horaInicio, pero luego empezaremos
+		 * por la siguiente hora.
+		 */
+		float xIni = xIniOnda()	- ratioPixelMinuto * extraerMinutos(desde);
+		Date horaInicio=horaRedonda(desde);
+		Date horaFin=horaRedonda(hasta);
+
+		Paint paintRaya=CanvasUtil.paintBorde();
+		paintRaya.setColor(0xFF334455);
+		paintRaya.setPathEffect(new DashPathEffect(new float[]{20,20}, 0));
+
+
+		float y =  canvas.getHeight() - ALTO_ZONA_MARCAS / 2;
+		for(Date hora=horaSiguiente(horaInicio); hora.getTime()<horaFin.getTime(); hora=horaSiguiente(hora)) {
+			float x = xIni + difHoras(hora , horaInicio) * ratioPixelMinuto * 60;
+			float yActual = puntoActual(canvas, hora.getTime()).y;
+			canvas.drawLine(x, yActual, x, y - paintTexto.getTextSize(), paintRaya);
+			String texto= "" + extraerHora(hora);
+			canvas.drawText(texto, x,y, paintTexto);
+		}
+	}
+
+	private long difHoras(Date hasta, Date desde) {
+		return (hasta.getTime() - desde.getTime()) / 60 / 60 / 1000;
+	}
+
+	private Date horaRedonda(Date desde) {
+		Calendar cal=Calendar.getInstance();
+		cal.setTime(desde);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		return cal.getTime();
+	}
+
+	private Date horaSiguiente(Date desde) {
+		Calendar cal=Calendar.getInstance();
+		cal.setTime(desde);
+		cal.add(Calendar.HOUR, 1);
+		return cal.getTime();
+	}
+
+	int minutosRestantes(Date desde) {
+		return 60 - extraerMinutos(desde);
+	}
+
+	/**
+	 * El tiempo en minutos entre dos momentos en el tiempo.
+	 * @param desde
+	 * @param hasta
+	 * @return
+	 */
+	private int distanciaMinutos(Date desde, Date hasta) {
+		int amplitudMinutos=extraerHoraYMinutos(hasta) - extraerHoraYMinutos(desde);
+		if(amplitudMinutos<0) {
+			amplitudMinutos+=24 * 60;
+		}
+		return amplitudMinutos;
+	}
+
+	private int extraerMinutos(Date date) {
+		Calendar cal=Calendar.getInstance();
+		cal.setTime(date);
+		return cal.get(Calendar.MINUTE);
+	}
+
+	private int extraerHoraYMinutos(Date date) {
+		Calendar cal=Calendar.getInstance();
+		cal.setTime(date);
+		return cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE);
+	}
+
+	private int extraerHora(Date date) {
+		Calendar cal=Calendar.getInstance();
+		cal.setTime(date);
+		return cal.get(Calendar.HOUR_OF_DAY);
+	}
 
 	private void pintarFondoTransicion(Canvas canvas) {
 		int izquierdo;
@@ -141,20 +237,30 @@ public class EventosView extends View {
 	}
 
 	SimpleDateFormat diaMesFormat=new SimpleDateFormat("dd MMM");
+
+	int ALTO_ZONA_MARCAS = 40;
+	/**
+	 * Este es el espacio reservado a la zona de la Onda y de sus textos
+	 * tenemos que dejar un margen para la zona de las marcas de horas.
+	 * @return
+	 */
+	int getAltoGrafico(Canvas canvas) {
+		return canvas.getHeight() - ALTO_ZONA_MARCAS;
+	}
 	
 	void pintarEstadoActual(Canvas canvas) {
 		Paint paint=getPaintEstadoActual();
 
-		float deltaY=(getHeight() - paint.getTextSize()*2)/2;
+		float deltaY=(getAltoGrafico(canvas) - paint.getTextSize()*2)/2;
 		float posx=width/4;
 
-		PointF punto=puntoActual(canvas);
+		PointF punto=puntoActual(canvas,  info.hora.getTime());
 
 		posx=Math.max(
 				Math.min(punto.x, width/2-paint.getTextSize()*4),
 				paint.measureText("Pleamar Subi")
 				);
-		deltaY=Math.min(punto.y, getHeight() - paint.getTextSize()*3);
+		deltaY=Math.min(punto.y, getAltoGrafico(canvas) - paint.getTextSize()*3);
 		
 		Date ahora=new Date();
 		if(DateUtils.isToday(info.hora.getTime())) {
@@ -251,7 +357,7 @@ public class EventosView extends View {
 		if(nombreMarea==R.string.bajamar) {
 			paint.setColor(Estilo.COLOR_TEXTO_HORA_BAJAMAR);
 			paintEstado.setColor(Estilo.COLOR_TEXTO_BAJAMAR);
-			delta=height-paint.getTextSize()*2;
+			delta=getAltoGrafico(canvas)-paint.getTextSize()*2;
 		} else {
 			paint.setColor(Estilo.COLOR_TEXTO_HORA_PLEAMAR);
 			paintEstado.setColor(Estilo.COLOR_TEXTO_PLEAMAR);
@@ -269,15 +375,15 @@ public class EventosView extends View {
 				paintEstado);
 
 	}
-	
 
-	PointF puntoActual(Canvas canvas) {
+
+	PointF puntoActual(Canvas canvas, long ahora) {
 		if(info.siguiente==null || info.anterior==null) {
 			return new PointF(0,0);
 		}
 
 		long  distanciaEntreMareas = info.siguiente.getTime() - info.anterior.getTime();
-		long  ahora	 = info.hora.getTime();
+
 		double  x = (ahora - info.anterior.getTime()) * (Math.PI) / distanciaEntreMareas;
 
 		boolean bajando=info.alturaSiguiente < info.alturaAnterior;
@@ -296,7 +402,7 @@ public class EventosView extends View {
 		paint.setStyle(Paint.Style.FILL);
 		paint.setColor(0xFFCC7777);
 
-		PointF punto=puntoActual(canvas);
+		PointF punto=puntoActual(canvas, info.hora.getTime());
 		canvas.drawCircle(punto.x, punto.y, 10, paint);
 	}
 
@@ -313,7 +419,7 @@ public class EventosView extends View {
 	}
 
 	private float altoOnda() {
-		return getHeight() - 2 * yIniOnda();
+		return getHeight()  - ALTO_ZONA_MARCAS - 2 * yIniOnda();
 	}
 
 	private void pintarOnda(Canvas canvas, int fase) {

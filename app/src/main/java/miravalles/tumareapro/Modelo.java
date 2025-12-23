@@ -32,12 +32,14 @@ import android.util.Log;
 public class Modelo {
 	
 	private static Modelo modelo;
-	private TuMareaActivity contexto;
+	private Context contexto;
 
 	public static final int SIN_DATOS=-20000;
 												// indicador de que un sitio no tiene			
 											    // datos con desfase
 	private Sitio []sitios=null;
+
+	private File directorioImagenes;
 
 	/**
 	 * Guardamos los coeficientes del año actual y del año siguiente:
@@ -45,12 +47,13 @@ public class Modelo {
 	private int [][][]coeficientes;
 	// Para saber si los tengo que recargar...
 
-	public static Modelo crearModelo(TuMareaActivity contexto) {
-		modelo=new Modelo(contexto);		
+	public static Modelo crearModelo(Context contexto, File directorioImagenes) {
+		modelo=new Modelo(contexto);
+		modelo.directorioImagenes = directorioImagenes;
 		return modelo;
 	}
 
-	public Modelo(TuMareaActivity contexto) {
+	public Modelo(Context contexto) {
 		sitios=new Spain().getSitios(contexto);
 		this.contexto=contexto;
 	}
@@ -78,7 +81,7 @@ public class Modelo {
 	public void removeFoto(int lugar, int metros) {
 		Foto foto=getFoto(lugar, metros);
 		if(foto!=null && foto.isExterna()) {
-		    File photo = new File(contexto.getDirectorioImagenes(),
+		    File photo = new File(directorioImagenes,
 		    		foto.getNombreExterna(modelo.getSitio(lugar))
 		    		);
 		    photo.delete();

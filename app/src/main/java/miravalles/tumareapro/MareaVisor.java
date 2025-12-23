@@ -191,7 +191,7 @@ public class MareaVisor  implements AemetListener {
 	private View crearZonaInfoSuperior(Context context) {
 		eventosView=new EventosView(context);
 		eventosView.setTag("eventosView");
-		sizer.set(eventosView).fillWidth().weightY(1);
+		sizer.set(eventosView).fillWidth().weightY(1.2f);
 		return eventosView;
 	}
 
@@ -214,24 +214,12 @@ public class MareaVisor  implements AemetListener {
 		grafico.setTag("grafico");
 		sizer.set(grafico).fillWidth().fillHeight();
 		zonaInfo.addView(grafico);
-		sizer.set(zonaInfo).fillWidth().weightY(4);
+		sizer.set(zonaInfo).fillWidth().weightY(3.8f);
 
 		gestionarGestos(zonaInfo);
 		return zonaInfo;
 	}
 	
-
-	public void verFotoAmpliada(final Foto foto, int pos) {
-	    final File photo = new File(contexto.getDirectorioImagenes(),
-	    		foto.getNombreExterna(modelo.getSitio(pos))
-	    		);
-		
-		
-		Intent it=new Intent(Intent.ACTION_VIEW);
-		it.setDataAndType(Uri.fromFile(photo), "image/*");
-		contexto.startActivity(it);
-	}
-
 	public void setSinFoto(boolean modo) {
 		sinFoto=modo;
 		guardarEstado();

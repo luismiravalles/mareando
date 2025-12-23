@@ -95,8 +95,6 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 	private Date	 fechaVista;
 	// private SitioView sitioView;
 
-	private boolean pies;
-
 	Typeface fontAwesome;
 	
 	public Date getFechaVista() {
@@ -128,13 +126,16 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 	private CabeceraSitioFecha cabSitioFecha;
 	
 	private boolean respetarTouchEvent;
-	private boolean mostrarAemet;
+	private boolean mostrarAemet = true;
 
 	public static int REQUEST_MAP=1001;
 
 	Sizer sizer=new Sizer();
 
 	private boolean fechaCambiada=false;
+
+	private boolean isFirstLaunch=true;
+
 
 	/**
 	 * Para que al pulsar rápido no se atasquen algunos botones.
@@ -164,7 +165,7 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 
 
 	public void recargarPreferencias(ActivityResult result) {
-		cargarPreferencias();
+		tuMareaApp().cargarPreferencias();
 		refresh();
 	}
 
@@ -180,7 +181,7 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 	@Override
     public void onCreate(Bundle savedInstanceState) {
 
-		modelo=Modelo.crearModelo(this);
+		modelo = Modelo.get();
 
 		fontAwesome= ResourcesCompat.getFont(this, R.font.fontawesome);
 		AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
@@ -192,10 +193,7 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 
 		
 		//this.requestWindowFeature(Window.FEATURE_NO_TITLE);
-		
-    	cargarPreferencias();
     	verificarZonaHoraria();
-
     	initDimensiones();
 
     	Sizer sizer=new Sizer();
@@ -283,12 +281,12 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 	private void crearBotones() {
 
 		// Reloj=f017
-		crearBoton(botonera, 12, "-12h", "\uf30a",  v -> menos12()) ;
-		crearBoton(botonera, 12, "+12h", "\uf30b",  v -> mas12()) ;
-		crearBoton(botonera,25, "Tabla", "\uf0ce",  v -> mostrarTablaMareas()) ;
-		crearBoton(botonera, 25,"Mapa", "\uf279" , v-> mostrarMapaSitios());
+		crearBoton(botonera, 14, "-12h", "\uf30a",  v -> menos12()) ;
+		crearBoton(botonera, 14, "+12h", "\uf30b",  v -> mas12()) ;
+		crearBoton(botonera,24, "Tabla", "\uf0ce",  v -> mostrarTablaMareas()) ;
+		crearBoton(botonera, 24,"Mapa", "\uf279" , v-> mostrarMapaSitios());
 		// crearBoton(botonera, numBotones,"Acerca de", "\uf059", v -> acercaDe());
-		crearBoton(botonera, 25, "AEMET", "\uf72e", v-> abrirAemet());
+		crearBoton(botonera, 24, "AEMET", "\uf72e", v-> abrirAemet());
 
 	}
 
@@ -322,7 +320,7 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 
 		textView.setText(texto);
 		textView.setTextColor(0xFF777777);
-		textView.setTextSize(Util.dp(6,raiz));
+		textView.setTextSize(Util.dp(5,raiz));
 		textView.setTextAlignment(TextView.TEXT_ALIGNMENT_CENTER);
 		textView.setGravity(Gravity.CENTER_VERTICAL);
 		textView.setBackgroundColor(0xFF222233);
@@ -355,10 +353,17 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 
 	}
 
-
 	private void abrirAemet() {
 		Sitio sitio=Modelo.get().getSitio(getIndiceSitio());
 		String codigoAemet=sitio.getCodigoAemet();
+
+		if(codigoAemet==null || codigoAemet.length()<2) {
+			Toast.makeText(this,
+					"Lo sentimos. No tenemos información de Aemet para este sitio",
+					Toast.LENGTH_LONG).show();
+			return;
+		}
+
 		if(codigoAemet!=null) {
 			codigoAemet = codigoAemet.substring(0, 2);
 		} else {
@@ -417,10 +422,13 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
     @Override
     public void onResume() {
     	Log.d("T","On Resume");
-		if(fechaVista==null || !fechaCambiada) {
+		if(fechaVista==null || !fechaCambiada && !isFirstLaunch) {
 			fechaVista=new Date();
+			cambiarFecha(fechaVista);
 		}
     	super.onResume();
+		isFirstLaunch=false;
+		fechaCambiada=false;
     }
     
     
@@ -651,16 +659,7 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 	private final static int CREAR_SITIO=2;
 	private final static int PREFERENCIAS=3;
 	
-	public File getDirectorioImagenes() {		
-    	File directorio=Environment.getExternalStorageDirectory();
-    	if(directorio!=null) {
-    		directorio=new File(directorio, "tumarea");
-    		directorio.mkdir();
-    	}  else {
-    		directorio=getCacheDir();
-    	}
-    	return directorio;
-	}
+
 	
 	
 
@@ -674,7 +673,7 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 	    
 	    Foto foto=new Foto(alturaImagen);
 	    
-	    File photo = new File(getDirectorioImagenes(),
+	    File photo = new File(tuMareaApp().getDirectorioImagenes(),
 	    		foto.getNombreExterna(modelo.getSitio(sitio))
 	    		);
 	    intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photo));	    		
@@ -796,16 +795,12 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 	    // Handle item selection
 		return procesarItemSelected(item);
 
-	}	
- 
-	public void cargarPreferencias() {
-		SharedPreferences prefs = PreferenceManager
-				.getDefaultSharedPreferences(getBaseContext());
-		pies=prefs.getBoolean("pies", false);
-		MareaInfo.pies=pies;
-		this.mostrarAemet=true;
-
 	}
+
+	TuMareaApp tuMareaApp() {
+		return (TuMareaApp)getApplication();
+	}
+
 	
 	public void mostrarAjustes() {
 		preferenciasLauncher.launch(new Intent(this,PreferenciasActivity.class));
@@ -845,7 +840,7 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 					cal.set(Calendar.DAY_OF_MONTH, selectedDay);
 
 					Date fechaElegida = cal.getTime();
-					cambiarFecha(getIndiceSitio(), fechaElegida);
+					cambiarFecha( fechaElegida);
 					Log.i("X", "Elegida fecha " + fechaElegida);
 					fechaCambiada=true;
 
@@ -858,7 +853,7 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 		datePickerDialog.show();
 	}
     
-    private void cambiarFecha(int position, Date fecha) {
+    private void cambiarFecha( Date fecha) {
     	Modelo modelo=Modelo.get();
     	setFechaVista(fecha);
     	mareaVisor.refresh();
