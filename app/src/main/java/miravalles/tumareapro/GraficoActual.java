@@ -20,6 +20,7 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Paint.Align;
 import android.graphics.Paint.Style;
+import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Shader.TileMode;
@@ -566,17 +567,17 @@ public class GraficoActual extends View {
 		canvas.drawText(texto, x, yTexto, paint);
 		
 		Paint paintLinea=new Paint();
+		paintLinea.setStyle(Paint.Style.STROKE);
 		paintLinea.setColor(Estilo.COLOR_LINEA);
-		canvas.drawLine(
-					getMargenIzquierdo()-getTextSize(),
-					yTexto,
-					getMargenIzquierdo()-getTextSize()/2+1,
-					y, paintLinea);
-		canvas.drawLine(getMargenIzquierdo()-getTextSize()/2+1, 
-						y, 
-						getMargenIzquierdo(),
-						y, paintLinea);
-		
+		paintLinea.setStrokeWidth(6);
+		paintLinea.setStrokeCap(Paint.Cap.ROUND);
+		paintLinea.setStrokeJoin(Paint.Join.ROUND);
+
+		Path path=new Path();
+		path.moveTo(getMargenIzquierdo()-getTextSize(), yTexto);
+		path.lineTo(getMargenIzquierdo()-getTextSize()/2+1, y);
+		path.lineTo(getMargenIzquierdo(), y);
+		canvas.drawPath(path, paintLinea);
 	}
 	
 	private void pintarIconoEstado(Canvas canvas, MareaInfo info) {
