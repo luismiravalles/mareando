@@ -37,8 +37,8 @@ android {
         minSdk = 24
         targetSdk = 35
 
-        versionCode = 47
-        versionName = "2026-8"
+        versionCode = 48
+        versionName = "2026-9"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -117,7 +117,7 @@ dependencies {
     implementation("com.google.android.material:material:1.12.0")
     implementation("org.osmdroid:osmdroid-android:6.1.18")
 
-    implementation("org.shredzone.commons:commons-suncalc:3.9")
+    implementation("org.shredzone.commons:commons-suncalc:2.14")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
