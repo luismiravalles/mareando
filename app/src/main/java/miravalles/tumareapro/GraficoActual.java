@@ -55,6 +55,8 @@ public class GraficoActual extends View {
 	MareaInfo info;
 	private int width;
 	private int height;
+
+	private String textoProgreso="";
 	
 	final int getMargenTop() {
 		return 32 +
@@ -83,6 +85,10 @@ public class GraficoActual extends View {
 
 	public GraficoActual(Context context) {
 		super(context);		
+	}
+
+	public void setTextoProgreso(String texto) {
+		this.textoProgreso=texto;
 	}
 	
 	protected Rect rectPiscina() {
@@ -211,7 +217,7 @@ public class GraficoActual extends View {
 
 			pintarIconoEstado(canvas, info);
 		} else {
-			String texto="Obteniendo datos";
+			String texto= this.textoProgreso;
 			String textoError=Modelo.get().getSitio(indiceSitio).getErrorInstitutoMarina(
 					info.getMes());
 			if(textoError!=null) {
@@ -730,11 +736,11 @@ public class GraficoActual extends View {
 	
 
 	void pintarLuna(Canvas canvas, Rect rectCielo) throws IOException {
-		int pct=getPctPeriodo();
 		InputStream is=
 			getContext().getAssets().open("luna/luna-" +
 					info.getEdadLunar() + ".png");
 		Bitmap luna = BitmapFactory.decodeStream(is);
+		is.close();
 		int pad=8;
 		
 		float escalaLuna=((float)width / 8f) / luna.getWidth();		

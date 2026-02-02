@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 import miravalles.tumareapro.Config;
@@ -141,7 +142,8 @@ public class Sitio {
 		return nom;
 	}
 
-	public void cargarDatos(final Context contexto, final AnoMes anoMes, final Runnable runnable) {
+	public void cargarDatos(final Context contexto, final AnoMes anoMes,
+							final Runnable runnable, final Consumer<String> progreso) {
 		if(yaCargado(anoMes.getMes()) && yaCargado(nextRollingMes(anoMes.getMes()))) {
 			runnable.run();
 			return;
@@ -149,14 +151,14 @@ public class Sitio {
 
 		Executor executor= Executors.newSingleThreadExecutor();
 		executor.execute( () -> {
-			cargarDatosDosMeses(contexto, anoMes);
+			cargarDatosDosMeses(contexto, anoMes, progreso);
 			runnable.run();
 		});
 
 		// TODO ??? Continuar cargando x meses?
 		executor.execute( () -> {
 			AnoMes siguiente=anoMes.siguiente().siguiente();
-			cargarDatosDosMeses(contexto, siguiente);
+			cargarDatosDosMeses(contexto, siguiente, progreso);
 		});
 
 	}
@@ -178,10 +180,17 @@ public class Sitio {
 		return mes;
 	}
 
-	private void cargarDatosDosMeses(final Context contexto, final AnoMes anoMes) {
+	private void cargarDatosDosMeses(final Context contexto,
+									 	final AnoMes anoMes,
+									 	final Consumer<String> progreso) {
 		InstitutoMarinaDatosDao dao=new InstitutoMarinaDatosDao(contexto);
+		progreso.accept("Obteniendo datos de " + anoMes.toStringConNombre()
+						+ " de " + this.nombre + "..." );
 		dao.obtenerDatosMes(this, anoMes);
 		AnoMes siguiente=anoMes.siguiente();
+
+		progreso.accept("Obteniendo datos de " + siguiente.toStringConNombre()
+				+ " de " + this.nombre + "...");
 		dao.obtenerDatosMes(this, siguiente);
 	}
 

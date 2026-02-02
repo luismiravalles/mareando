@@ -1,14 +1,18 @@
 package miravalles.tumareapro;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
 import android.app.Activity;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.TableLayout;
@@ -131,6 +135,16 @@ public class TablaMareas extends AppCompatActivity {
 		return campo;
 	}
 
+	private ImageView newImageColumn(LinearLayout ll, int peso) {
+		ImageView campo=new ImageView(this);
+		campo.setPadding(8, 12, 8, 12);
+		LayoutParams campoLp=new LayoutParams(0, LayoutParams.WRAP_CONTENT);
+		campoLp.weight=peso;
+		campo.setLayoutParams(campoLp);
+		ll.addView(campo);
+		return campo;
+	}
+
 	private int imprimirNombre(LinearLayout ll, MareaInfo info) {
 		int peso=10;
 		TextView campo=newColumn(ll, peso);
@@ -145,22 +159,37 @@ public class TablaMareas extends AppCompatActivity {
 		return peso;
 	}
 
+	private int imprimirLuna(LinearLayout ll, MareaInfo info) {
+		int peso=20;
+		ImageView imageView=newImageColumn(ll, peso);
+		try {
+			InputStream is = this.getAssets().open("luna/luna-" +
+					info.getEdadLunar() + ".png");
+			Drawable d = Drawable.createFromStream(is, null);
+			imageView.setImageDrawable(d);
+		} catch(IOException e) {
+			Log.e("TablaMareas", "Error leyendo Luna " + e);
+		}
+		return peso;
+
+	}
+
 	private int imprimirHora(LinearLayout ll, MareaInfo info) {
-		int peso=25;
+		int peso=20;
 		TextView campo=newColumn(ll,peso);
 		campo.setText(info.getHoraSiguiente());
 		return peso;
 	}
 
 	private int imprimirAltura(LinearLayout ll, MareaInfo info) {
-		int peso=25;
+		int peso=20;
 		TextView campo=newColumn(ll, peso);
 		campo.setText(info.getAlturaSiguiente());
 		return peso;
 	}
 
 	private int imprimirCoeficiente(LinearLayout ll, MareaInfo info) {
-		int peso=15;
+		int peso=10;
 		TextView campo=newColumn(ll, 15);
 		campo.setTextAlignment(TextView.TEXT_ALIGNMENT_TEXT_END);
 		if(info.coeficiente>0) {
@@ -191,6 +220,7 @@ public class TablaMareas extends AppCompatActivity {
 		peso+=imprimirHora(cols, info);
 		peso+=imprimirAltura(cols, info);
 		peso+=imprimirCoeficiente(cols, info);
+		peso+=imprimirLuna(cols, info);
 
 		LayoutParams aguaLp=new LayoutParams(0, LayoutParams.MATCH_PARENT);
 		aguaLp.weight=100 - peso;

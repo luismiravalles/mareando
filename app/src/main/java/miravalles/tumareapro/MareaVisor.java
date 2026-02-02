@@ -60,7 +60,6 @@ public class MareaVisor  implements AemetListener {
 
 	private EventosView eventosView;
 
-
 	public MareaVisor(TuMareaActivity contexto, Modelo modelo) {
 		this.contexto=contexto;
 		this.modelo=modelo;
@@ -105,20 +104,33 @@ public class MareaVisor  implements AemetListener {
 		});
 	}
 
+
+	public void mostrarProgreso(String texto) {
+		Activity activity=(Activity)viewRaiz.getContext();
+		new Handler(Looper.getMainLooper()).post(() -> {
+			getGraficoActual().setTextoProgreso(texto);
+			getGraficoActual().invalidate();
+		});
+
+	}
+
 	public void cargarDatos() {
 		GregorianCalendar gc = Modelo.utcCalendar();
 		gc.setTime(contexto.getFechaVista());
 		int mes=gc.get(Calendar.MONTH);
 		int ano=gc.get(Calendar.YEAR);
 
+		getGraficoActual().setTextoProgreso("Obteniendo datos");
+
 		Sitio sitio=modelo.getSitio(indiceSitio);
-		sitio.cargarDatos(viewRaiz.getContext(), new AnoMes(ano, mes), this::actualizarEnUiThread);
+		sitio.cargarDatos(viewRaiz.getContext(), new AnoMes(ano, mes),
+				this::actualizarEnUiThread,
+				this::mostrarProgreso);
 		modelo.cargarCoeficientes(viewRaiz.getContext(), ano, this::actualizarEnUiThread);
 		AemetInfo aemetInfo=Aemet.getCache(sitio.getCodigoAemet());
 		if(aemetInfo==null) {
 			Aemet.cargar(this.contexto, sitio.getCodigoAemet(), this);
 		}
-
 	}
 
 
@@ -247,7 +259,7 @@ public class MareaVisor  implements AemetListener {
     	contexto.setFechaVista(fechaActual);
 		Log.i("GESTO", "Nueva hora " + fechaActual);
     	
-    	GraficoActual grafico=(GraficoActual)zonaInfo.findViewWithTag("grafico");
+    	GraficoActual grafico=getGraficoActual();
     	if(grafico!=null) {
     		MareaInfo info=modelo.getMareaInfo(indiceSitio, contexto.getFechaVista());
 			if(!info.hayDatos()) {
@@ -262,9 +274,13 @@ public class MareaVisor  implements AemetListener {
     	}
     }
 
+	private GraficoActual getGraficoActual() {
+		return (GraficoActual)getZonaInfo().findViewWithTag("grafico");
+	}
+
 	public void actualizarDatos(View raiz, int pagina) {
 		Log.i("X", "actualizando Datos de " + pagina);
-		GraficoActual grafico=(GraficoActual)getZonaInfo().findViewWithTag("grafico");
+		GraficoActual grafico=getGraficoActual();
 		MareaInfo info=modelo.getMareaInfo(pagina, contexto.getFechaVista());
 		grafico.setInfo(info, indiceSitio);
 		grafico.invalidate();

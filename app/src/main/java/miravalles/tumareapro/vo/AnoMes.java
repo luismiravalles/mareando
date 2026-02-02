@@ -1,5 +1,10 @@
 package miravalles.tumareapro.vo;
 
+import java.text.DateFormatSymbols;
+import java.time.Month;
+import java.time.format.TextStyle;
+import java.util.Locale;
+
 /**
  * Guarda Año y mes y permite obtener facilmente el siguiente.
  * Es una clase inmutable.
@@ -32,6 +37,10 @@ public class AnoMes {
 
     public String toString() {
         return "" + ano + "-" + getMesBaseUno();
+    }
+
+    public String toStringConNombre() {
+        return new DateFormatSymbols(Locale.getDefault()).getMonths()[getMes()];
     }
 
 }

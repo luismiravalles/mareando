@@ -4,6 +4,7 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -28,6 +29,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.util.Log;
+
+import org.shredzone.commons.suncalc.MoonIllumination;
 
 public class Modelo {
 	
@@ -175,55 +178,24 @@ public class Modelo {
 		}
 		return 0;
 	}
-	
+
 	public static int getEdadLuna(Date date) {
-		GregorianCalendar gc = utcCalendar();
-		gc.setTime(date);
-		int dia = gc.get(gc.DAY_OF_MONTH) - 1;
-		int mes = gc.get(gc.MONTH);
-		int ano = gc.get(gc.YEAR);
+		// 1. Obtener la iluminación de la luna para hoy
 
-		int edad=getEpacta(ano)+getDiasDesde1Enero(mes, dia);
-		return ((edad * 100 ) % 2953) / 100;
-	}	
-	
-	public static int getEdadLuna(int ano, int mes, int dia) {
-//		int edad=getEpacta(ano)+getDiasDesde1Enero(mes, dia);
-//		return edad % 29;
-		// Seg�n el m�todo con correcci�n mensual publicado en http://jms32.eresmas.net/web2008/documentos/divulgacion/astronomia/2010_08_14_FasesLuna.html#Refh5_Fases_De_La_Luna_2010
-		final int []CORRECCION_MENSUAL=new int[] {
-				0,1,0,1,2,3,4,5,6,7,8,9
-		};
-		int edad= getEpacta(ano)+CORRECCION_MENSUAL[mes]+dia;
-		return edad % 29;		
-	}
-	
-	public static int getDiasDesde1Enero(int mes, int dia) {
-		int []diasmes=new int[]{31,28,31,30,31,30,31,31,30,31,30,31};
-		int dias=0;
-		for(int i=0; i<mes; i++) {
-			dias+=diasmes[i];
+		MoonIllumination moon = MoonIllumination.compute()
+				.on(date) // Usa la fecha actual del dispositivo
+				.execute();
+		double faseGrados = moon.getPhase();
+
+		double edadLuna = ((faseGrados + 180) / 360) * 29.53;
+		int result= (int)Math.round(edadLuna);
+		if(result>=29) {
+			result=0;
 		}
-		return dias+dia;
+		return result;
 	}
-	
-	public static int getEpacta(int year) {
-		int A = year % 19;                       // Año dentro del ciclo metónico
-		int B = year / 100;                      // Corrección solar
-		int C = (8 * (B + 1)) / 25;              // Corrección lunar
-		int D = (B - C + 1) / 3;                 // Ajuste gregoriano
 
-		int epacta = (8 + 11 * A - B + C + D) % 30;
 
-		if (epacta <= 0) {
-			epacta += 30;                        // La epacta 0 se considera 30
-		}
-
-		return epacta;
-	}
-	
-
-	
 	private static int getEventoAjustado(int evento, boolean esPleamar, Sitio sitio) {
 		int result;
 		if(esPleamar) {
