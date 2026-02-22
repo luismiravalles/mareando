@@ -107,7 +107,10 @@ public class Aemet {
 					info.setFecha(parser.getAttributeValue(null, "fecha"));
 				}
 				if(name.equals("t_agua") && info.getTemperaturaAgua()==null) {
-					info.setTemperaturaAgua(parser.getAttributeValue(null, "valor1"));	
+
+					info.setTemperaturaAgua(parser.getAttributeValue(null, "valor1"));
+					Log.i("AEMET", "Encontrada temperatura: "
+						+ info.getTemperaturaAgua());
 				}
 				if(name.equals("viento")&& info.getViento()==null) {
 					info.setViento(parser.getAttributeValue(null, "descripcion1"));
@@ -126,7 +129,7 @@ public class Aemet {
 			
 		} catch (Exception e) {
 
-			Log.e("A",e.toString());
+			Log.e("AEMET",e.toString());
 		}
 		
 		return null;

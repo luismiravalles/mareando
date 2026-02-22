@@ -126,7 +126,6 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 	private CabeceraSitioFecha cabSitioFecha;
 	
 	private boolean respetarTouchEvent;
-	private boolean mostrarAemet = true;
 
 	public static int REQUEST_MAP=1001;
 
@@ -169,10 +168,6 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 		refresh();
 	}
 
-
-    public boolean isMostrarAemet() {
-		return mostrarAemet;
-	}
 
 	public boolean isRespetarTouchEvent() {
 		return respetarTouchEvent;
@@ -364,35 +359,13 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 			return;
 		}
 
-		if(codigoAemet!=null) {
-			codigoAemet = codigoAemet.substring(0, 2);
-		} else {
-			codigoAemet = "33"; // Si no hay código pues cogemos Asturias.
-		}
-		String area="can1";
-		switch(codigoAemet) {
-			case "27":
-			case "15":
-			case "36":
-				area="gal1";
-				break;
-			case "21":
-			case "11":
-			case "29":
-			case "41":
-			case "51":
-			case "52":
-				area="and1";
-				break;
-			case "35":
-			case "38":
-				area="coo1";
-				break;
-		}
+		String area = sitio.getArea();
 		String pagina="https://www.aemet.es/es/eltiempo/prediccion/maritima?opc1=0&opc3=0&area=${area}&opc2=marvto";
 		pagina=pagina.replace("${area}", area);
 		Util.mostrarAviso(TuMareaActivity.this, pagina);
 	}
+
+
 
 	private void prepararCabecera() {
 		cabSitioFecha=new CabeceraSitioFecha();

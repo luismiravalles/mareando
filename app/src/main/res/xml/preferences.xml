@@ -5,6 +5,13 @@
         android:title="@string/alturaEnPies"
         android:summary="@string/alturaEnPiesDesc"
         android:key="pies"/>
+
+    <CheckBoxPreference
+        android:title="Mostrar Avisos Aemet"
+        android:summary="Al entrar a la app, consultar AEMET y mostrar avisos si existen."
+        android:key="avisosAemet"
+        android:defaultValue="true"
+        />
     
 
     

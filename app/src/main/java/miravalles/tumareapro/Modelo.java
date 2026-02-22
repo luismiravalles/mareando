@@ -20,7 +20,9 @@ import miravalles.tumareapro.domain.DatosListener;
 import miravalles.tumareapro.domain.Foto;
 import miravalles.tumareapro.domain.Sitio;
 import miravalles.tumareapro.domain.Spain;
+import miravalles.tumareapro.vo.AnoMes;
 import miravalles.tumareapro.vo.GeoLocalizacion;
+import miravalles.tumareapro.vo.Marea;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -33,7 +35,8 @@ import android.util.Log;
 import org.shredzone.commons.suncalc.MoonIllumination;
 
 public class Modelo {
-	
+
+	public static final int MINUTOS_DIA = 1440;
 	private static Modelo modelo;
 	private Context contexto;
 
@@ -145,6 +148,12 @@ public class Modelo {
 		info.alturaAnterior=altura[mesAnt][iAnt];
 	}
 
+	public Date getHoraDeMinutosDesdeInicioMes(int mes, int desdeInicioMes) {
+		GregorianCalendar gc=utcCalendar(anoDelMes(mes), mes, 1);
+		gc.add(gc.MINUTE, desdeInicioMes);
+		return gc.getTime();
+	}
+
 	/**
 	 * En las matrices de marea y alturas tengo cargados de cada mes siendo
 	 * del año siguiente en el caso de que el mes sea menor al actual
@@ -211,6 +220,62 @@ public class Modelo {
 		int adyacente=altura[ i==0? i+1:i-1];
 		return alt > adyacente;
 	}
+
+	/**
+	 * Devuelve los datos básicos de las mareas de un dia determinado.
+	 *
+	 * @param sitio El indice del sitio actual
+	 * @param mes El mes en base 0
+	 * @param dia El dia en base 0
+	 * @return Tabla de Mareas
+	 */
+	public List<Marea> getTablaMareas(int sitio, int mes, int dia) {
+		int [][]minutoMareas=getMarea(sitio);
+		int [][]alturaMareas=getAltura(sitio);
+
+		final int minutoInicioDia=dia * MINUTOS_DIA;
+		int indiceInicioDia=buscarIndicePorMinuto(minutoMareas[mes], minutoInicioDia);
+
+
+		List<Marea> mareas=new ArrayList<>();
+		int ultimoIndice=ultimoDato(minutoMareas[mes]);
+		// Recorremos hasta cambiar de día o topar con el fin del mes
+		for(int i=indiceInicioDia;  i<=ultimoIndice; i++) {
+
+			int diaActual=minutoMareas[mes][i] / MINUTOS_DIA;
+			if(diaActual!=dia) {
+				break;
+			}
+
+			GregorianCalendar gc=utcCalendar(anoDelMes(mes), mes, 1);
+			gc.add(gc.MINUTE, minutoMareas[mes][i]);
+
+			Marea marea=new Marea(gc.get(Calendar.HOUR),
+								  gc.get(Calendar.MINUTE),
+								alturaMareas[mes][i],
+								getCoeficiente(gc.getTime()),
+								getEdadLuna(gc.getTime())
+								);
+			mareas.add(marea);
+		}
+		// Establecer cuales son pleamares
+		for(int i=0; i<mareas.size();  i++) {
+			Marea compararCon= i==0?mareas.get(i+1):mareas.get(i-1);
+			mareas.get(i).setPleamar(mareas.get(i).getAltura() > compararCon.getAltura());
+		}
+		Log.i("M", "getTableMareas retorna: " + mareas.size());
+		return mareas;
+	}
+
+	public int buscarIndicePorMinuto(int []minutoMareas, int minuto) {
+		int ultimo=ultimoDato(minutoMareas);
+		for(int i=0; i<=ultimo; i++ ) {
+			if(minutoMareas[i]>=minuto) {
+				return i;
+			}
+		}
+		return -1;
+	}
 	
 	public MareaInfo getMareaInfo(int sitio, Date momento) {
 		MareaInfo info=new MareaInfo(momento, sitios[sitio].getGeo());
@@ -242,12 +307,12 @@ public class Modelo {
 			//		+ sitios[sitio].nombre);
 		}
 
-		int minutoMes = (dia * 1440) + (hora * 60) + min;
+		int minutoMesBuscado = (dia * MINUTOS_DIA) + (hora * 60) + min;
 		for (int i = 0; i < marea[mes].length; i++) {
 			boolean esPleamar=esPleamar(altura[mes], i);
-			if (minutoMes < getEventoAjustado(marea[mes][i], esPleamar, sitios[sitio])) {
+			if (minutoMesBuscado < getEventoAjustado(marea[mes][i], esPleamar, sitios[sitio])) {
 				result.add(result.MINUTE, 
-						getEventoAjustado(marea[mes][i], esPleamar, sitios[sitio]) - minutoMes);
+						getEventoAjustado(marea[mes][i], esPleamar, sitios[sitio]) - minutoMesBuscado);
 				altProx = altura[mes][i];
 				info.siguiente=result.getTime();
 				info.alturaSiguiente=altura[mes][i] ;
@@ -260,7 +325,7 @@ public class Modelo {
 		}
 		boolean esPleamarUltimoDia=esPleamar(altura[mes], altura[mes].length-1);
 		int eventoUltimoDia=marea[mes][marea[mes].length - 1];
-		if (minutoMes >= getEventoAjustado(eventoUltimoDia, esPleamarUltimoDia, sitios[sitio])) {
+		if (minutoMesBuscado >= getEventoAjustado(eventoUltimoDia, esPleamarUltimoDia, sitios[sitio])) {
 			GregorianCalendar gcAnterior=utcCalendar(anoDelMes(mes), mes, 1);
 			int ultimoI=ultimo(marea,  mes);
 			int minutos=marea[mes][ultimoI];
@@ -304,19 +369,33 @@ public class Modelo {
 			info.alturaAnterior  = info.alturaAnterior *  escalaPleamar / 100;
 		}
 	}
-	
-	
-	public void calcularCoeficiente(MareaInfo info) {
+
+	/**
+	 * Retorna -1 si no hay coeficiente cargado para esta hora.
+	 *
+	 * @param hora
+	 * @return
+	 */
+	public int getCoeficiente(Date hora) {
 		GregorianCalendar gc = utcCalendar();
-		gc.setTime(info.hora);
+		gc.setTime(hora);
 		int dia = gc.get(gc.DAY_OF_MONTH) - 1;
 		int mes = gc.get(gc.MONTH);
 		int anoDelta = gc.get(GregorianCalendar.YEAR) - Util.thisYear();
 		if(anoDelta<0) {
-			return;
+			return -1 ;
 		}
 		if(coeficientes!=null && coeficientes[anoDelta]!=null) { // Podría no estar cargado aun.
-			info.coeficiente=coeficientes[anoDelta][mes][dia];
+			return coeficientes[anoDelta][mes][dia];
+		} else {
+			return -1;
+		}
+	}
+	
+	public void calcularCoeficiente(MareaInfo info) {
+		int coeficiente=getCoeficiente(info.hora);
+		if(coeficiente>0) {
+			info.coeficiente=coeficiente;
 		}
 	}
 	

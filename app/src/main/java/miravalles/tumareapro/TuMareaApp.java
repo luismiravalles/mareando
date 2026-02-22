@@ -32,5 +32,8 @@ public class TuMareaApp extends Application {
                 .getDefaultSharedPreferences(getBaseContext());
         boolean pies=prefs.getBoolean("pies", false);
         MareaInfo.pies=pies;
+
+        AvisadorAemet.setAvisosAemet(prefs.getBoolean("avisosAemet", true));
+
     }
 }

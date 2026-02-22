@@ -34,12 +34,15 @@ import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.TextView;
 
 import androidx.appcompat.content.res.AppCompatResources;
 
 import com.google.android.material.snackbar.Snackbar;
 
-public class GraficoActual extends View {
+public class GraficoActual extends FrameLayout {
 	
 	private static Bitmap barquito=null;
 	private static Bitmap agua=null;
@@ -57,6 +60,8 @@ public class GraficoActual extends View {
 	private int height;
 
 	private String textoProgreso="";
+
+	private TextView viewAvisos;
 	
 	final int getMargenTop() {
 		return 32 +
@@ -81,10 +86,31 @@ public class GraficoActual extends View {
 		super.onSizeChanged(w, h, oldw, oldh);
 		this.width=w;
 		this.height=h;
+
+		posicionarViewAvisos();
+	}
+
+	private void posicionarViewAvisos() {
+		// Colocar el View Avisos.
+		LayoutParams params= new LayoutParams(
+				LayoutParams.MATCH_PARENT,
+				LayoutParams.WRAP_CONTENT);
+		params.leftMargin = getMargenIzquierdo() + 10;
+		params.topMargin = getAltoFilaTexto() * 4;
+		viewAvisos.setLayoutParams(params);
 	}
 
 	public GraficoActual(Context context) {
-		super(context);		
+		super(context);
+		setWillNotDraw(false);
+		crearViewAvisos(this.getContext());
+	}
+
+	public void crearViewAvisos(Context context) {
+		viewAvisos = new TextView(context);
+		viewAvisos.setBackgroundColor(Color.TRANSPARENT);
+		viewAvisos.setTextColor(Color.WHITE);
+		addView(viewAvisos);
 	}
 
 	public void setTextoProgreso(String texto) {
@@ -239,6 +265,14 @@ public class GraficoActual extends View {
 		
 		pintarAemet(canvas);
 	}
+
+	public void mostrarAvisoAemet(String aviso) {
+		if(this.viewAvisos!=null) {
+			this.viewAvisos.setText(aviso);
+			this.invalidate();
+		}
+
+	}
 	
 	private void pintarAemet(Canvas canvas) {
 
@@ -265,6 +299,9 @@ public class GraficoActual extends View {
 			
 			
 			AemetInfo.Datos datos=aemetInfo!=null?aemetInfo.getDatos(info.hora):null;
+			if(datos==null) {
+				Log.e("GraficoActual", "No hay datos aemet");
+			}
 			int x=getMargenIzquierdo();
 			if(datos!=null) {
 				

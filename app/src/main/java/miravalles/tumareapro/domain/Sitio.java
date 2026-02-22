@@ -20,6 +20,8 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 
 public class Sitio {
 
@@ -259,4 +261,61 @@ public class Sitio {
     public void setErrorInstitutoMarina(int mes, String errorInstitutoMarina) {
         this.errorInstitutoMarina[mes] = errorInstitutoMarina;
     }
+
+	/**
+	 * Identificador de zona costera segun la API de aemet. Ver este sitio:
+	 * https://opendata.aemet.es/dist/index.html?#/prediccion-maritima/Predicci%C3%B3n%20mar%C3%ADtima%20costera.
+	 * @return
+	 */
+	public String getIdAreaAemet() {
+		if(codigoAemet ==null || codigoAemet.length()<2) {
+			return null;
+		}
+		String area=getArea();
+		if(area==null) {
+			return null;
+		}
+		switch(area) {
+			case "can1":
+				return "41";
+			case "gal1":
+				return "40";
+			case "and1":
+				return "42";
+			case "coo1":
+				return "43";
+		}
+		return null;
+	}
+
+	@NonNull
+	public String getArea() {
+		String area="can1";
+		String codigo;
+		if(codigoAemet !=null && codigoAemet.length()>=2) {
+			codigo = codigoAemet.substring(0, 2);
+		} else {
+			codigo = "33"; // Si no hay código pues cogemos Asturias.
+		}
+		switch(codigo) {
+			case "27":
+			case "15":
+			case "36":
+				area="gal1";
+				break;
+			case "21":
+			case "11":
+			case "29":
+			case "41":
+			case "51":
+			case "52":
+				area="and1";
+				break;
+			case "35":
+			case "38":
+				area="coo1";
+				break;
+		}
+		return area;
+	}
 }

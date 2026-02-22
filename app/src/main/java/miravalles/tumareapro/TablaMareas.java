@@ -3,8 +3,10 @@ package miravalles.tumareapro;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
 
 import android.app.Activity;
 import android.graphics.Typeface;
@@ -23,13 +25,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.core.view.WindowCompat;
 
-public class TablaMareas extends AppCompatActivity {
-	
-	private static final long MILIS_DIA=1000*60*60*24;
-	
-	private static SimpleDateFormat sdf=new SimpleDateFormat("EEE, dd MMM");
+import miravalles.tumareapro.vo.Marea;
 
-	Sizer sizer=new Sizer();
+public class TablaMareas extends AppCompatActivity {
+
+	private static SimpleDateFormat sdf=new SimpleDateFormat("EEE, dd MMM");
 
 	Typeface fontAwesome;
 	
@@ -43,83 +43,74 @@ public class TablaMareas extends AppCompatActivity {
 		fontAwesome=ResourcesCompat.getFont(this, R.font.fontawesome);
 
 
-		cargar();
+		cargarTabla();
 	}
 
-
-	
-	private void cargar() {
+	private void cargarTabla() {
+		Log.i("TM", "Cargando tabla...");
 		Date fechaVista=new Date(getIntent().getExtras().getLong("fecha"));
 		int posicion=getIntent().getExtras().getInt("posicion",0);
-		
+
 		TableLayout tabla=(TableLayout)findViewById(R.id.tabla);
 		GregorianCalendar gc=Modelo.get().utcCalendar();
 		gc.setTime(fechaVista);
 		gc.set(gc.HOUR_OF_DAY,0);
 		gc.set(gc.MINUTE,0);
 		gc.set(gc.SECOND,0);
+		gc.set(GregorianCalendar.MILLISECOND, 0);
 
 		Date desde=gc.getTime();
-		
+
 		boolean par=false;
-		for(long i=0; i<30 * MILIS_DIA; i+=MILIS_DIA) {
-			long time=desde.getTime()+i;
-			Date fecha=new Date(time);
-			/*
-			if(!Modelo.get().existeFecha(fecha)) {
-				break;
-			}
-			*/
 
-			TableRow fila=new TableRow(this);
-			fila.setWeightSum(100f);
-			if(par) {
-				fila.setBackgroundColor(0xFF002244);
-			} else {
-				fila.setBackgroundColor(0xFF003355);
-			}
-			tabla.addView(fila);
-			
-			TableRow.LayoutParams tlp=new TableRow.LayoutParams();
-			tlp.width=0;
-			tlp.weight=20;
-			
-			TextView tvFecha=new TextView(this);
-			tvFecha.setText(sdf.format(fecha));
-			tvFecha.setTextColor(0xFFFFFFFF);
-			tvFecha.setPadding(10,0,20,0);
-			tvFecha.setTextSize(16);
-			tvFecha.setGravity(Gravity.CENTER);
-			fila.addView(tvFecha);
+		for(int i=0; i<30; i++) {
+			cargarDia(tabla, posicion, gc, par);
+			gc.add(Calendar.DAY_OF_MONTH, 1);
 			par=!par;
-			tvFecha.setLayoutParams(tlp);
+		}
+	}
 
-			TableRow.LayoutParams tll=new TableRow.LayoutParams();
-			tll.width=0;
-			tll.weight=80;		
-			LinearLayout ll=new LinearLayout(this);
-			ll.setOrientation(LinearLayout.VERTICAL);			
-			ll.setLayoutParams(tll);
-			fila.addView(ll);
-			MareaInfo info=Modelo.get().getMareaInfo(posicion, fecha);
-			while(info.siguiente!=null && info.siguiente.getTime() < time + MILIS_DIA) {
-				imprimirDatosMarea(ll, info);
-				Date sig=new Date(info.siguiente.getTime()+1L);
-				/*
-				if(!Modelo.get().existeFecha(sig)) {
-					return;
-				}
-				*/
 
-				info=Modelo.get().getMareaInfo(posicion, sig);
-				if(info.siguiente==null) {
-					// Parece que no hay información
-					break;
-				}
-				if(info.siguiente.getTime() <= sig.getTime()) {
-					break;
-				}
-			}
+	private void cargarDia(TableLayout tabla,int posicion, GregorianCalendar dia, boolean par) {
+		Log.i("TM", "Cargando día " + dia.getTime());
+		TableRow fila=new TableRow(this);
+		fila.setWeightSum(100f);
+		tabla.addView(fila);
+		if(par) {
+			fila.setBackgroundColor(0xFF002244);
+		} else {
+			fila.setBackgroundColor(0xFF003355);
+		}
+
+			TableRow.LayoutParams tlp=new TableRow.LayoutParams();
+		tlp.width=0;
+		tlp.weight=20;
+
+
+		TextView tvFecha=new TextView(this);
+		tvFecha.setText(sdf.format(dia.getTime()));
+		tvFecha.setTextColor(0xFFFFFFFF);
+		tvFecha.setPadding(10,0,20,0);
+		tvFecha.setTextSize(16);
+		tvFecha.setGravity(Gravity.CENTER);
+		fila.addView(tvFecha);
+		tvFecha.setLayoutParams(tlp);
+
+		TableRow.LayoutParams tll=new TableRow.LayoutParams();
+		tll.width=0;
+		tll.weight=80;
+		LinearLayout ll=new LinearLayout(this);
+		ll.setOrientation(LinearLayout.VERTICAL);
+		ll.setLayoutParams(tll);
+		fila.addView(ll);
+
+		int mes=dia.get(Calendar.MONTH);
+		int diaBaseCero=dia.get(Calendar.DAY_OF_MONTH)-1;
+
+		List< Marea> mareas=Modelo.get().getTablaMareas(posicion, mes, diaBaseCero);
+		for(Marea marea:mareas) {
+			imprimirDatosMarea(ll, marea);
+
 		}
 	}
 
@@ -145,11 +136,11 @@ public class TablaMareas extends AppCompatActivity {
 		return campo;
 	}
 
-	private int imprimirNombre(LinearLayout ll, MareaInfo info) {
+	private int imprimirNombre(LinearLayout ll, Marea marea) {
 		int peso=10;
 		TextView campo=newColumn(ll, peso);
 		campo.setTypeface(fontAwesome);
-		if(info.alturaSiguiente>info.alturaAnterior) {
+		if(marea.isPleamar()) {
 			campo.setTextColor(0xFFAA2222);
 			campo.setText("\uf062");
 		} else {
@@ -159,12 +150,12 @@ public class TablaMareas extends AppCompatActivity {
 		return peso;
 	}
 
-	private int imprimirLuna(LinearLayout ll, MareaInfo info) {
+	private int imprimirLuna(LinearLayout ll, Marea marea) {
 		int peso=20;
 		ImageView imageView=newImageColumn(ll, peso);
 		try {
 			InputStream is = this.getAssets().open("luna/luna-" +
-					info.getEdadLunar() + ".png");
+					marea.getEdadLunar() + ".png");
 			Drawable d = Drawable.createFromStream(is, null);
 			imageView.setImageDrawable(d);
 		} catch(IOException e) {
@@ -174,67 +165,60 @@ public class TablaMareas extends AppCompatActivity {
 
 	}
 
-	private int imprimirHora(LinearLayout ll, MareaInfo info) {
+	private int imprimirHora(LinearLayout ll, Marea marea) {
 		int peso=20;
 		TextView campo=newColumn(ll,peso);
-		campo.setText(info.getHoraSiguiente());
+		campo.setText(marea.getHoraFormateada());
 		return peso;
 	}
 
-	private int imprimirAltura(LinearLayout ll, MareaInfo info) {
+	private int imprimirAltura(LinearLayout ll, Marea marea) {
 		int peso=20;
 		TextView campo=newColumn(ll, peso);
-		campo.setText(info.getAlturaSiguiente());
+		campo.setText(marea.getAlturaFormateada());
 		return peso;
 	}
 
-	private int imprimirCoeficiente(LinearLayout ll, MareaInfo info) {
+	private int imprimirCoeficiente(LinearLayout ll, Marea marea) {
 		int peso=10;
 		TextView campo=newColumn(ll, 15);
 		campo.setTextAlignment(TextView.TEXT_ALIGNMENT_TEXT_END);
-		if(info.coeficiente>0) {
-			campo.setText(Integer.toString(info.coeficiente));
+		if(marea.getCoeficiente()>0) {
+			campo.setText(Integer.toString(marea.getCoeficiente()));
 		}
 		return peso;
 	}
 
-	private int getBackgroundColor(MareaInfo info) {
-		int backgroundColor;
-		if(info.alturaAnterior>info.alturaSiguiente) {
-			backgroundColor=Estilo.FONDO_BAJAMAR_TABLA;
-		} else {
-			backgroundColor=Estilo.FONDO_PLEAMAR_TABLA;
-		}
-		return backgroundColor;
+	private int getBackgroundColor(Marea marea) {
+		return marea.isPleamar()?Estilo.FONDO_PLEAMAR_TABLA:Estilo.FONDO_BAJAMAR_TABLA;
 	}
 
-	private void imprimirDatosMarea(LinearLayout ll, MareaInfo info) {
+	private void imprimirDatosMarea(LinearLayout ll, Marea marea) {
+		Log.i("TM", "Imprimir Datos Marea: " + marea);
 		LinearLayout cols=new LinearLayout(this);
 		cols.setOrientation(LinearLayout.HORIZONTAL);
 		cols.setWeightSum(100);
-		cols.setBackgroundColor(getBackgroundColor(info));
+		cols.setBackgroundColor(getBackgroundColor(marea));
 		ll.addView(cols);
 
 		int peso=0;
-		peso+=imprimirNombre(cols, info);
-		peso+=imprimirHora(cols, info);
-		peso+=imprimirAltura(cols, info);
-		peso+=imprimirCoeficiente(cols, info);
-		peso+=imprimirLuna(cols, info);
+		peso+=imprimirNombre(cols, marea);
+		peso+=imprimirHora(cols, marea);
+		peso+=imprimirAltura(cols, marea);
+		peso+=imprimirCoeficiente(cols, marea);
+		peso+=imprimirLuna(cols, marea);
 
 		LayoutParams aguaLp=new LayoutParams(0, LayoutParams.MATCH_PARENT);
 		aguaLp.weight=100 - peso;
 
 		AguaTabla agua=new AguaTabla(this);
-		if(info.alturaAnterior>info.alturaSiguiente) {
-			agua.setBajamar(true);
-		}
+			agua.setBajamar(!marea.isPleamar());
 		agua.setColor(0xFF0044AA);
 		agua.setBackgroundColor(0xFF000044);
 		agua.setLayoutParams(aguaLp);
 		agua.setMax(Config.maxAltura());
 		agua.setMin(0);
-		agua.setAltura(info.alturaSiguiente);
+		agua.setAltura(marea.getAltura());
 		agua.setPadding(1,1,1,1);
 		cols.addView(agua);
 	}

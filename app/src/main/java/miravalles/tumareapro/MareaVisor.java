@@ -46,13 +46,15 @@ public class MareaVisor  implements AemetListener {
 
 	private LinearLayout viewRaiz;
 
+	AvisadorAemet avisadorAemet = new AvisadorAemet();
 
-	private boolean sinFoto=true;
 
 	/**
 	 * Indice del sitio que estamos mostrando...
 	 */
 	private int indiceSitio;
+
+
 
 
 	private Sizer sizer=new Sizer();
@@ -63,8 +65,6 @@ public class MareaVisor  implements AemetListener {
 	public MareaVisor(TuMareaActivity contexto, Modelo modelo) {
 		this.contexto=contexto;
 		this.modelo=modelo;
-		
-		restaurarEstado();
 	}
 
 	/**
@@ -105,6 +105,7 @@ public class MareaVisor  implements AemetListener {
 	}
 
 
+
 	public void mostrarProgreso(String texto) {
 		Activity activity=(Activity)viewRaiz.getContext();
 		new Handler(Looper.getMainLooper()).post(() -> {
@@ -131,6 +132,9 @@ public class MareaVisor  implements AemetListener {
 		if(aemetInfo==null) {
 			Aemet.cargar(this.contexto, sitio.getCodigoAemet(), this);
 		}
+
+		avisadorAemet.verificarAviso(viewRaiz.getContext(), sitio, getGraficoActual()::mostrarAvisoAemet );
+
 	}
 
 
@@ -232,24 +236,9 @@ public class MareaVisor  implements AemetListener {
 		return zonaInfo;
 	}
 	
-	public void setSinFoto(boolean modo) {
-		sinFoto=modo;
-		guardarEstado();
-	}
+
 	
-    public void guardarEstado() {
-    	SharedPreferences pref=PreferenceManager.getDefaultSharedPreferences(contexto);
-    	Editor edit=pref.edit();
-    	edit.putBoolean("sinFoto", sinFoto);
-    	edit.commit();    	
-    }
-    
-    public void restaurarEstado() {
-    	SharedPreferences pref=PreferenceManager.getDefaultSharedPreferences(contexto);
-		sinFoto=true;
-		// De momento no queremos mostrar foto.
-    	// sinFoto=pref.getBoolean("sinFoto", false);
-    }
+
 
     public void cambiarHora(int x, View zonaInfo) {
 		Log.i("GESTO", "Cambiar hora");
