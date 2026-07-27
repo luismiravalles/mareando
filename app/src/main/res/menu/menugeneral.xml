@@ -48,7 +48,11 @@
 	   	      android:icon="@drawable/camara"
 				android:visible="false"
 	   	      android:title="@string/borrarfoto"/>	
-   	 </group>     
+   	 </group>
+
+	<item android:id="@+id/imprimir"
+			android:title="Calendario Anual"/>
+
      <item android:id="@+id/menu_ajustes"
           android:title="@string/ajustes"
 	/>

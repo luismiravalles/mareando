@@ -85,6 +85,8 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.installations.Utils;
+
 public class TuMareaActivity extends AppCompatActivity implements OnClickListener, LocationListener {
 
 	public static final String MIRAVALLES_TUMAREAPRO = "miravalles.tumareapro";
@@ -724,7 +726,25 @@ public class TuMareaActivity extends AppCompatActivity implements OnClickListene
 			return true;
 		}
 
+		if(item.getItemId() == R.id.imprimir) {
+			imprimir();
+			return true;
+		}
+
 		return super.onContextItemSelected(item);
+
+	}
+
+
+	private void imprimir() {
+		Impresor impresor=new Impresor(this);
+		int idSitio=Modelo.get().getSitio(getIndiceSitio()).getIdIHM();
+		String nombrePuerto=Modelo.get().getSitio(getIndiceSitio()).nombre;
+		String url=String.format("https://tumarea.macetero.org/datos/%d/calendario-%d.pdf",
+					idSitio, Util.thisYear());
+		impresor.imprimir(nombrePuerto,
+					Integer.toString(Util.thisYear()),
+					url);
 
 	}
 

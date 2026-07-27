@@ -12,7 +12,7 @@ plugins {
 
 android {
     namespace = "miravalles.tumareapro"
-    compileSdk = 35
+    compileSdk = 36
 
 
     signingConfigs {
@@ -35,7 +35,7 @@ android {
     defaultConfig {
         applicationId = "miravalles.mareame"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 36
 
         versionCode = 48
         versionName = "2026-9"
